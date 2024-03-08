@@ -11,6 +11,11 @@ let gameState='game';
 const VERSION_NUM = '0.0.1'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
+
+//funcpreload
+function preload() {
+    playerTexure = loadImage('/texures/playertemp.png');
+}
 /*******************************************************/
 // setup()
 /*******************************************************/
@@ -45,10 +50,12 @@ function draw() {
 /*******************************************************/
 // functions
 /*******************************************************/
+
 //game function
 function game() {
     background('green');
     camera.pos = player.pos;
+    player.rotateMinTo(mouse, 9, 90);
     controlsForPlayer ();
 }
 //startscreenfunction
@@ -59,6 +66,9 @@ function startScreen () {
 function resetGame() {
     player = new Sprite(windowWidth/2, windowHeight/2, PLAYER_SCALE, 'd')
     player.color = playerColour;
+    player.stroke = 'white';
+    player.addImage(playerTexure);
+    playerTexure.resize(PLAYER_SCALE, PLAYER_SCALE);
 }
 //movement code
 function controlsForPlayer () {
