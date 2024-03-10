@@ -8,7 +8,7 @@ console.log('Boot UndUnl');
 var player;
 var playerColour = '#7922E9';
 let gameState='game';
-const VERSION_NUM = '0.0.1'
+const VERSION_NUM = '0.0.3.1'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
 
