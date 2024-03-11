@@ -7,14 +7,16 @@ console.log('Boot UndUnl');
 // Seting up the variable and constants etc
 var player;
 var playerColour = '#7922E9';
+var playerWeapon;
 let gameState='game';
-const VERSION_NUM = '0.0.3.1'
+const VERSION_NUM = '0.1.0'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
 
 //funcpreload
 function preload() {
     playerTexure = loadImage('/texures/playertemp.png');
+    playerSwordTexure = loadImage('/texures/playerweapon1texure.png')
 }
 /*******************************************************/
 // setup()
@@ -55,8 +57,13 @@ function draw() {
 function game() {
     background('green');
     camera.pos = player.pos;
-    player.rotateMinTo(mouse, 9, 90);
+    player.rotateMinTo(mouse, 9, 90);//speed 8 found from testing and 90 is to point the sprite the correct ways
     controlsForPlayer ();
+    if (playerWeapon.vel.x > 3||playerWeapon.vel.y > 3||playerWeapon.vel.x < -3||playerWeapon.vel.y < -3) console.log('moving speed ' +(playerWeapon.vel.y+playerWeapon.vel.x));
+    //playerWeapon.pos.y = (player.pos.y + 10);
+    //playerWeapon.pos.x = (player.pos.x + 10);
+    j = new WheelJoint(player, playerWeapon);
+    playerWeapon.rotateMinTo(mouse, 6, 90);
 }
 //startscreenfunction
 function startScreen () {
@@ -64,37 +71,42 @@ function startScreen () {
 }
 //this is the reset game function
 function resetGame() {
+    //getting the player ready
     player = new Sprite(windowWidth/2, windowHeight/2, PLAYER_SCALE, 'd')
     player.color = playerColour;
     player.stroke = 'white';
     player.addImage(playerTexure);
     playerTexure.resize(PLAYER_SCALE, PLAYER_SCALE);
+    //getting the players wepon ready
+    playerWeapon = new Sprite(windowWidth/2, windowHeight/2, PLAYER_SCALE, PLAYER_SCALE*2, 'd')
+    playerWeapon.stroke = 'white';
+    playerWeapon.drag = 1;
+    playerWeapon.offset.y = -50;
+    playerWeapon.addImage(playerSwordTexure);
+    playerSwordTexure.resize(PLAYER_SCALE, PLAYER_SCALE*2);
 }
 //movement code
 function controlsForPlayer () {
+    //movment controls (WASD)
     if (kb.pressing('a')){
-        console.log("a");
         player.vel.x=-PLAYER_SPEED;
     }
     if (kb.released('a')){
         player.vel.x=0;
     }
     if (kb.pressing('d')){
-        console.log("d");
         player.vel.x=+PLAYER_SPEED;
     }
     if (kb.released('d')){
         player.vel.x=0;
     }
     if (kb.pressing('w')){
-        console.log("w");
         player.vel.y=-PLAYER_SPEED;
     }
     if (kb.released('w')){
         player.vel.y=0;
     }
     if (kb.pressing('s')){
-        console.log("s");
         player.vel.y=+PLAYER_SPEED; 
     }
     if (kb.released('s')){
