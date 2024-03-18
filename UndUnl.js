@@ -14,11 +14,11 @@ var defaultZHealthMin = 1;
 var defaultZHealthMax = 6;
 var swordKnockBack = 3;
 var queueNum = 0;
-let gameState='game';
-const VERSION_NUM = '0.2'
+let gameState='startScreen';
+const VERSION_NUM = '0.2.1'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
-const GAME_WIDTH = 2000;
+const GAME_WIDTH = 3000;
 const GAME_HEIGHT = 2000;
 
 //funcpreload
@@ -41,6 +41,7 @@ function setup() {
     wallTop.color = 'black';
     wallBot = new Sprite(GAME_WIDTH/2, GAME_HEIGHT, GAME_WIDTH, 0, 'k');
     wallBot.color = 'black';
+    tempWalls();
     horedGroup = new Group();
     //reseting the game to start
     resetGame();
@@ -61,7 +62,25 @@ function draw() {
 /*******************************************************/
 // functions
 /*******************************************************/
-
+//startscreenfunction
+function startScreen () {
+    background('blue');
+    controlsForPlayer ()
+    player.rotateMinTo(mouse, 9, 90);//speed 9 found from testing and 90 is to point the sprite the correct ways
+    playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
+}
+//tempwalls for menus
+function tempWalls() {
+    tempWallBot = new Sprite(windowWidth/2, windowHeight, windowWidth, 0, 'k');
+    tempWallBot.color = 'black';
+    tempWallRH  = new Sprite(windowWidth, windowHeight/2, 0, windowHeight, 'k');
+    tempWallRH.color = "black";
+}
+//remove temp walls
+function noTempWalls(){
+    tempWallBot.remove();
+    tempWallRH.remove();
+}
 //game function
 function game() {
     background('lightBlue');
@@ -72,10 +91,6 @@ function game() {
     player.rotateMinTo(mouse, 9, 90);//speed 8 found from testing and 90 is to point the sprite the correct ways
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
     controlsForPlayer ();
-}
-//startscreenfunction
-function startScreen () {
-    background('blue');
 }
 //this is the reset game function
 function resetGame() {
@@ -98,6 +113,8 @@ function resetGame() {
     playerHands.springiness = 0.01;
     //kill zombie detection
     horedGroup.collides(playerWeapon, swordHitZombie);
+    //reset the walls
+    noTempWalls();
 }
 //movement code
 function controlsForPlayer () {
@@ -151,19 +168,19 @@ function spawnZombiesQueue (_amountToQueue){
 }
 function spawnZombies (_amount){
     for (i = 0; i < _amount; i++) {
-        var zSpawnZ = random(0, GAME_HEIGHT);
+        var zSpawnY = random(0, GAME_HEIGHT);
         var zSpawnX = random(0, GAME_WIDTH);
         var zSpawnSize = random(14, 24);
         var zSpawnHealth = floor(random(defaultZHealthMin, defaultZHealthMax));
-        if (validateSpawnLocation(zSpawnX, zSpawnZ) == true){
-            zombie = new Sprite(zSpawnZ, zSpawnX, zSpawnSize, "d");
+        if (validateSpawnLocation(zSpawnX, zSpawnY)){
+            zombie = new Sprite(zSpawnX, zSpawnY, zSpawnSize, "d");
             zombie.color= "darkGreen";
             zombie.health = zSpawnHealth;
             zombie.friction = 1.5;
             horedGroup.add(zombie);
             spawnZombiesQueue (0);
         }
-        else if (validateSpawnLocation(zSpawnX, zSpawnZ) == false) {
+        else {
             spawnZombiesQueue (1);
         }
     }
@@ -182,6 +199,7 @@ function swordHitZombie(_zombie, _player) {
 //spawn outside of player veiw code
 function validateSpawnLocation(_xPos, _yPos){
     var valid
+    console.log(_xPos, _yPos, player.pos.x, player.pos.y, dist(_xPos, _yPos, player.pos.x, player.pos.y));
     if (dist(_xPos, _yPos, player.pos.x, player.pos.y)> windowHeight){
         console.log('true');
         return(true);
