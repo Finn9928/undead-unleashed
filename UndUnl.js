@@ -5,14 +5,21 @@
 /*******************************************************/
 console.log('Boot UndUnl');
 // Seting up the variable and constants etc
+var score = 0;
 var player;
 var playerColour = '#7922E9';
 var playerWeapon;
 var swingSpeed = 6;
+var defaultZHealthMin = 1;
+var defaultZHealthMax = 6;
+var swordKnockBack = 3;
+var queueNum = 0;
 let gameState='game';
-const VERSION_NUM = '0.1.1'
+const VERSION_NUM = '0.2'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
+const GAME_WIDTH = 2000;
+const GAME_HEIGHT = 2000;
 
 //funcpreload
 function preload() {
@@ -26,13 +33,13 @@ function setup() {
     console.log(" setup: Undead Unleashed");
     new Canvas(windowWidth, windowHeight);
     //walls
-    wallLH  = new Sprite(0, height/2, 0, height, 'k');
+    wallLH  = new Sprite(0, GAME_HEIGHT/2, 0, GAME_HEIGHT, 'k');
     wallLH.color = 'black';
-    wallRH  = new Sprite(width, height/2, 0, height, 'k');
+    wallRH  = new Sprite(GAME_WIDTH, GAME_HEIGHT/2, 0, GAME_HEIGHT, 'k');
     wallRH.color = "black";
-    wallTop = new Sprite(width/2, 0, width, 0, 'k');
+    wallTop = new Sprite(GAME_WIDTH/2, 0, GAME_WIDTH, 0, 'k');
     wallTop.color = 'black';
-    wallBot = new Sprite(width/2, height, width, 0, 'k');
+    wallBot = new Sprite(GAME_WIDTH/2, GAME_HEIGHT, GAME_WIDTH, 0, 'k');
     wallBot.color = 'black';
     horedGroup = new Group();
     //reseting the game to start
@@ -57,8 +64,11 @@ function draw() {
 
 //game function
 function game() {
-    background('green');
+    background('lightBlue');
     camera.pos = player.pos;
+    textSize(30);
+    text(("Score: " +score), 200, 200);
+    textSize(16);
     player.rotateMinTo(mouse, 9, 90);//speed 8 found from testing and 90 is to point the sprite the correct ways
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
     controlsForPlayer ();
@@ -124,25 +134,63 @@ function controlsForPlayer () {
     if (mouse.pressing()) swingSpeed = 20;
     if (mouse.released()) swingSpeed = 6;
     
-    //texting button
-    if (kb.presses('1')) spawnZombies(1);
-    if (kb.presses('2')) spawnZombies(5);
+    //testing button
+    if (kb.presses('1')) spawnZombiesQueue(1);
+    if (kb.presses('2')) spawnZombiesQueue(5);
+    if (kb.presses('3')) spawnZombiesQueue(20);
+    if (kb.presses('4')) console.log(horedGroup.amount);
+}
+//this spawns the zombies
+function spawnZombiesQueue (_amountToQueue){
+    queueNum = queueNum + _amountToQueue;
+    if (queueNum >= 1){
+        queueNum = queueNum - 1;
+        console.log(queueNum);
+        spawnZombies(1);
+    }
 }
 function spawnZombies (_amount){
     for (i = 0; i < _amount; i++) {
-        var randNum1 = random(6, 200);
-        var randNum2 = random(60, 80);
-        var randNum3 = random(14, 24);
-        zombie = new Sprite(randNum1, randNum2, randNum3, "d");
-        zombie.color= "darkGreen";
-        horedGroup.add(zombie);
+        var zSpawnZ = random(0, GAME_HEIGHT);
+        var zSpawnX = random(0, GAME_WIDTH);
+        var zSpawnSize = random(14, 24);
+        var zSpawnHealth = floor(random(defaultZHealthMin, defaultZHealthMax));
+        if (validateSpawnLocation(zSpawnX, zSpawnZ) == true){
+            zombie = new Sprite(zSpawnZ, zSpawnX, zSpawnSize, "d");
+            zombie.color= "darkGreen";
+            zombie.health = zSpawnHealth;
+            zombie.friction = 1.5;
+            horedGroup.add(zombie);
+            spawnZombiesQueue (0);
+        }
+        else if (validateSpawnLocation(zSpawnX, zSpawnZ) == false) {
+            spawnZombiesQueue (1);
+        }
     }
 }
+//this is the player attacking zombie code
 function swordHitZombie(_zombie, _player) {
-        console.log("test");
-        // Delete the zombieh was hit
+    _zombie.health--;
+    _zombie.text = (_zombie.health);
+    _zombie.applyForce(swordKnockBack);
+    // Remove zombie if health
+    if (_zombie.health <= 0){
         _zombie.remove();
+        score++;
     }
+}
+//spawn outside of player veiw code
+function validateSpawnLocation(_xPos, _yPos){
+    var valid
+    if (dist(_xPos, _yPos, player.pos.x, player.pos.y)> windowHeight){
+        console.log('true');
+        return(true);
+    }
+    else {
+        console.log('false');
+        return(false);
+    }
+}
 /*******************************************************/
 //  END OF GAME
 /*******************************************************/
