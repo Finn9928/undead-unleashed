@@ -14,8 +14,11 @@ var defaultZHealthMin = 1;
 var defaultZHealthMax = 6;
 var swordKnockBack = 3;
 var queueNum = 0;
+var gameDifficulty = 'Normal';
+var startButton;
+var difficultyButton;
 let gameState='startScreen';
-const VERSION_NUM = '0.2.1'
+const VERSION_NUM = '0.2.2'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
 const GAME_WIDTH = 3000;
@@ -41,7 +44,7 @@ function setup() {
     wallTop.color = 'black';
     wallBot = new Sprite(GAME_WIDTH/2, GAME_HEIGHT, GAME_WIDTH, 0, 'k');
     wallBot.color = 'black';
-    tempWalls();
+    startSetup();
     horedGroup = new Group();
     //reseting the game to start
     resetGame();
@@ -62,25 +65,64 @@ function draw() {
 /*******************************************************/
 // functions
 /*******************************************************/
+/*******************************************************/
+// Start Screen and settings
+/*******************************************************/
 //startscreenfunction
 function startScreen () {
     background('blue');
     controlsForPlayer ()
     player.rotateMinTo(mouse, 9, 90);//speed 9 found from testing and 90 is to point the sprite the correct ways
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
+    startButton.collides(playerWeapon, swordHitPlayButton);
+    difficultyButton.collides(playerWeapon, toggleDifficulty);
 }
 //tempwalls for menus
-function tempWalls() {
+function startSetup() {
     tempWallBot = new Sprite(windowWidth/2, windowHeight, windowWidth, 0, 'k');
     tempWallBot.color = 'black';
     tempWallRH  = new Sprite(windowWidth, windowHeight/2, 0, windowHeight, 'k');
     tempWallRH.color = "black";
+    //start menu buttons
+    startButton = new Sprite(windowWidth/4, windowHeight/3, 80, 'k');
+    startButton.textSize = 30;
+    startButton.text = "Play";
+    startButton.health = 25;
+    //dificaulty button
+    difficultyButton = new Sprite(windowWidth/4*3, windowHeight/3, 80, 'k');
+    difficultyButton.textSize = 20;
+    difficultyButton.text = gameDifficulty;
+    difficultyButton.health = 15;
 }
 //remove temp walls
-function noTempWalls(){
+function noTempSprites(){
     tempWallBot.remove();
     tempWallRH.remove();
+    player.remove();
+    playerWeapon.remove();
+    startButton.remove();
+    difficultyButton.remove();
 }
+//this is the player attacking the play button
+function swordHitPlayButton(_button, _player) {
+    _button.health--;
+    _button.text = (_button.health);
+    // play game if hit
+    if (_button.health <= 0){
+        noTempSprites();
+        resetGame();
+        gameState='game';
+    }
+}
+//toggle the game difficulty
+function toggleDifficulty() {
+    if (gameDifficulty == 'Normal') gameDifficulty = 'Hard/Fast';
+    if (gameDifficulty == 'Hard/Fast') gameDifficulty = 'Easy';
+    if (gameDifficulty == 'Easy') gameDifficulty = 'Normal';
+}
+/*******************************************************/
+// The game its self
+/*******************************************************/
 //game function
 function game() {
     background('lightBlue');
@@ -113,8 +155,8 @@ function resetGame() {
     playerHands.springiness = 0.01;
     //kill zombie detection
     horedGroup.collides(playerWeapon, swordHitZombie);
-    //reset the walls
-    noTempWalls();
+    //reset the start screen
+    //noTempSprites();
 }
 //movement code
 function controlsForPlayer () {
@@ -147,10 +189,22 @@ function controlsForPlayer () {
         player.vel.y=0;
         playerWeapon.vel.y=0;
     }
+    //this keeps the player from gliding
+    if (player.vel.y <= (PLAYER_SPEED - 1)) {
+        if (player.vel.y >= (-PLAYER_SPEED + 1))
+            player.vel.y = 0;
+    }
+    if (player.vel.x <= (PLAYER_SPEED - 1)) {
+        if (player.vel.x >= (-PLAYER_SPEED + 1))
+            player.vel.x = 0;
+    }
+    if (player.vel.y > PLAYER_SPEED) player.vel.y = 0;
+    if (player.vel.x > PLAYER_SPEED) player.vel.x = 0;
+    if (player.vel.y < -PLAYER_SPEED) player.vel.y = 0;
+    if (player.vel.x < -PLAYER_SPEED) player.vel.x = 0;
     //Weapon controls
     if (mouse.pressing()) swingSpeed = 20;
     if (mouse.released()) swingSpeed = 6;
-    
     //testing button
     if (kb.presses('1')) spawnZombiesQueue(1);
     if (kb.presses('2')) spawnZombiesQueue(5);
@@ -209,6 +263,7 @@ function validateSpawnLocation(_xPos, _yPos){
         return(false);
     }
 }
+
 /*******************************************************/
 //  END OF GAME
 /*******************************************************/
