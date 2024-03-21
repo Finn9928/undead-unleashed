@@ -18,7 +18,7 @@ var gameDifficulty = 'Normal';
 var startButton;
 var difficultyButton;
 let gameState='startScreen';
-const VERSION_NUM = '0.2.2'
+const VERSION_NUM = '0.3.0'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
 const GAME_WIDTH = 3000;
@@ -60,6 +60,9 @@ function draw() {
     if (gameState == 'game') {
         game ();
     }
+    if (gameState == 'death') {
+        deathScreen ();
+    }
 }
 
 /*******************************************************/
@@ -76,6 +79,7 @@ function startScreen () {
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
     startButton.collides(playerWeapon, swordHitPlayButton);
     difficultyButton.collides(playerWeapon, toggleDifficulty);
+    difficultyButton.text = gameDifficulty;
 }
 //tempwalls for menus
 function startSetup() {
@@ -90,9 +94,8 @@ function startSetup() {
     startButton.health = 25;
     //dificaulty button
     difficultyButton = new Sprite(windowWidth/4*3, windowHeight/3, 80, 'k');
-    difficultyButton.textSize = 20;
-    difficultyButton.text = gameDifficulty;
-    difficultyButton.health = 15;
+    difficultyButton.textSize = 17;
+    difficultyButton.health = 20;
 }
 //remove temp walls
 function noTempSprites(){
@@ -115,10 +118,23 @@ function swordHitPlayButton(_button, _player) {
     }
 }
 //toggle the game difficulty
-function toggleDifficulty() {
-    if (gameDifficulty == 'Normal') gameDifficulty = 'Hard/Fast';
-    if (gameDifficulty == 'Hard/Fast') gameDifficulty = 'Easy';
-    if (gameDifficulty == 'Easy') gameDifficulty = 'Normal';
+function toggleDifficulty(_button, _player) {
+    _button.health--;
+    if (difficultyButton.health <= 0){
+        if (gameDifficulty == 'Normal') {
+        gameDifficulty = 'Hard/Fast';
+        difficultyButton.health = 20;
+        console.log(gameDifficulty);
+    } else if (gameDifficulty == 'Easy') {
+        gameDifficulty = 'Normal';
+        difficultyButton.health = 20;
+        console.log(gameDifficulty);
+    } else if (gameDifficulty == 'Hard/Fast') {
+        gameDifficulty = 'Easy';
+        difficultyButton.health = 20;
+        console.log(gameDifficulty);
+    }
+    }
 }
 /*******************************************************/
 // The game its self
@@ -155,39 +171,47 @@ function resetGame() {
     playerHands.springiness = 0.01;
     //kill zombie detection
     horedGroup.collides(playerWeapon, swordHitZombie);
-    //reset the start screen
-    //noTempSprites();
+    //kill the player
+    player.collides(horedGroup, zombieHitPlayer);
 }
 //movement code
 function controlsForPlayer () {
     //movment controls (WASD)
     if (kb.pressing('a')){
         player.vel.x=-PLAYER_SPEED;
+        speedUp();
     }
     if (kb.released('a')){
         player.vel.x=0;
         playerWeapon.vel.x=0;
+        speedDown();
     }
     if (kb.pressing('d')){
         player.vel.x=+PLAYER_SPEED;
+        speedUp();
     }
     if (kb.released('d')){
         player.vel.x=0;
         playerWeapon.vel.x=0;
+        speedDown();
     }
     if (kb.pressing('w')){
         player.vel.y=-PLAYER_SPEED;
+        speedUp();
     }
     if (kb.released('w')){
         player.vel.y=0;
         playerWeapon.vel.y=0;
+        speedDown();
     }
     if (kb.pressing('s')){
         player.vel.y=+PLAYER_SPEED; 
+        speedUp();
     }
     if (kb.released('s')){
         player.vel.y=0;
         playerWeapon.vel.y=0;
+        speedDown();
     }
     //this keeps the player from gliding
     if (player.vel.y <= (PLAYER_SPEED - 1)) {
@@ -210,6 +234,13 @@ function controlsForPlayer () {
     if (kb.presses('2')) spawnZombiesQueue(5);
     if (kb.presses('3')) spawnZombiesQueue(20);
     if (kb.presses('4')) console.log(horedGroup.amount);
+    //speed zoom
+    function speedUp (){
+        camera.zoomTo(0.95, 0.001);
+    }
+    function speedDown () {
+        camera.zoomTo(1, 0.01);
+    }
 }
 //this spawns the zombies
 function spawnZombiesQueue (_amountToQueue){
@@ -263,7 +294,20 @@ function validateSpawnLocation(_xPos, _yPos){
         return(false);
     }
 }
+//player being hit by zombie
+function zombieHitPlayer() {
+    noTempSprites();
+    console.log('player death L BOZO');
+    gameState='death'
+}
 
+function deathScreen() {
+    background('Red');
+    camera.pos.y = 0;
+    camera.pos.x = 0;
+    textSize(30);
+    text(("you died your score was: " + score), 200, 200);
+}
 /*******************************************************/
 //  END OF GAME
 /*******************************************************/
