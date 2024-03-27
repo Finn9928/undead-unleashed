@@ -13,12 +13,13 @@ var swingSpeed = 6;
 var defaultZHealthMin = 1;
 var defaultZHealthMax = 6;
 var swordKnockBack = 3;
+var playerMaxHealth = 10; //temporary health value
 var queueNum = 0;
 var gameDifficulty = 'Normal';
 var startButton;
 var difficultyButton;
 let gameState='startScreen';
-const VERSION_NUM = '0.3.0'
+const VERSION_NUM = '0.3.1'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
 const GAME_WIDTH = 3000;
@@ -44,10 +45,10 @@ function setup() {
     wallTop.color = 'black';
     wallBot = new Sprite(GAME_WIDTH/2, GAME_HEIGHT, GAME_WIDTH, 0, 'k');
     wallBot.color = 'black';
-    startSetup();
     horedGroup = new Group();
     //reseting the game to start
     resetGame();
+    startSetup();
 }
 
 /*******************************************************/
@@ -73,7 +74,7 @@ function draw() {
 /*******************************************************/
 //startscreenfunction
 function startScreen () {
-    background('blue');
+    background('#674C85');
     controlsForPlayer ()
     player.rotateMinTo(mouse, 9, 90);//speed 9 found from testing and 90 is to point the sprite the correct ways
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
@@ -92,10 +93,17 @@ function startSetup() {
     startButton.textSize = 30;
     startButton.text = "Play";
     startButton.health = 25;
+    startButton.color = '#C998D7';
     //dificaulty button
     difficultyButton = new Sprite(windowWidth/4*3, windowHeight/3, 80, 'k');
     difficultyButton.textSize = 17;
     difficultyButton.health = 20;
+    difficultyButton.color = '#C998D7';
+    //moving the player in veiw
+    player.pos.x = windowWidth/2;
+    player.pos.y = windowHeight/2;
+    playerWeapon.pos.x = windowWidth/2;
+    playerWeapon.pos.y = windowHeight/2;
 }
 //remove temp walls
 function noTempSprites(){
@@ -113,8 +121,8 @@ function swordHitPlayButton(_button, _player) {
     // play game if hit
     if (_button.health <= 0){
         noTempSprites();
-        resetGame();
         gameState='game';
+        resetGame();
     }
 }
 //toggle the game difficulty
@@ -141,7 +149,7 @@ function toggleDifficulty(_button, _player) {
 /*******************************************************/
 //game function
 function game() {
-    background('lightBlue');
+    background('#3D8F69');
     camera.pos = player.pos;
     textSize(30);
     text(("Score: " +score), 200, 200);
@@ -149,17 +157,19 @@ function game() {
     player.rotateMinTo(mouse, 9, 90);//speed 8 found from testing and 90 is to point the sprite the correct ways
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
     controlsForPlayer ();
+    centerGUI();
 }
 //this is the reset game function
 function resetGame() {
     //getting the player ready
-    player = new Sprite(windowWidth/2, windowHeight/2, PLAYER_SCALE, 'd')
+    player = new Sprite(GAME_WIDTH/2, GAME_HEIGHT/2, PLAYER_SCALE, 'd')
     player.color = playerColour;
     player.stroke = 'white';
     player.addImage(playerTexure);
+    player.health = playerMaxHealth;
     playerTexure.resize(PLAYER_SCALE, PLAYER_SCALE);
     //getting the players wepon ready
-    playerWeapon = new Sprite(windowWidth/2, windowHeight/2, PLAYER_SCALE, PLAYER_SCALE*2, 'd')
+    playerWeapon = new Sprite(GAME_WIDTH/2, GAME_HEIGHT/2, PLAYER_SCALE, PLAYER_SCALE*2, 'd')
     playerWeapon.stroke = 'white';
     playerWeapon.drag = 1;
     playerWeapon.offset.y = -50;
@@ -173,8 +183,19 @@ function resetGame() {
     horedGroup.collides(playerWeapon, swordHitZombie);
     //kill the player
     player.collides(horedGroup, zombieHitPlayer);
+    //healthbar setup but only if in the game
+    if (gameState == 'game') {
+        makeHeathBar();
+    }
 }
-//movement code
+//center GUI function
+function centerGUI() {
+    behindHealthBar.x = (player.pos.x);
+    behindHealthBar.y = (player.pos.y+windowHeight/2-90);
+    healthBar.x = (player.pos.x);
+    healthBar.y = (player.pos.y+windowHeight/2-90);
+}
+//movement code, called in game function and start screen function in the draw loop.
 function controlsForPlayer () {
     //movment controls (WASD)
     if (kb.pressing('a')){
@@ -215,12 +236,10 @@ function controlsForPlayer () {
     }
     //this keeps the player from gliding
     if (player.vel.y <= (PLAYER_SPEED - 1)) {
-        if (player.vel.y >= (-PLAYER_SPEED + 1))
-            player.vel.y = 0;
+        if (player.vel.y >= (-PLAYER_SPEED + 1)) player.vel.y = 0;
     }
     if (player.vel.x <= (PLAYER_SPEED - 1)) {
-        if (player.vel.x >= (-PLAYER_SPEED + 1))
-            player.vel.x = 0;
+        if (player.vel.x >= (-PLAYER_SPEED + 1)) player.vel.x = 0;
     }
     if (player.vel.y > PLAYER_SPEED) player.vel.y = 0;
     if (player.vel.x > PLAYER_SPEED) player.vel.x = 0;
@@ -236,10 +255,14 @@ function controlsForPlayer () {
     if (kb.presses('4')) console.log(horedGroup.amount);
     //speed zoom
     function speedUp (){
-        camera.zoomTo(0.95, 0.001);
+        if (gameState == 'game') {
+            camera.zoomTo(0.95, 0.001);
+        }
     }
     function speedDown () {
-        camera.zoomTo(1, 0.01);
+        if (gameState == 'game') {
+            camera.zoomTo(1, 0.01);
+        }
     }
 }
 //this spawns the zombies
@@ -294,20 +317,42 @@ function validateSpawnLocation(_xPos, _yPos){
         return(false);
     }
 }
+//player healbar display
+function makeHeathBar(){
+    behindHealthBar = new Sprite(windowWidth/2, windowHeight-90, windowWidth-40, windowHeight/8, 'n');
+    behindHealthBar.color = 'black';
+    behindHealthBar.stroke = 'black';
+    healthBar = new Sprite(windowWidth/2, windowHeight-90, windowWidth-55, windowHeight/8-15, 'n');
+    healthBar.overlaps(behindHealthBar);
+    healthBar.stroke = 'black';
+    healthBar.color = '#C22B19FF';
+}
 //player being hit by zombie
 function zombieHitPlayer() {
-    noTempSprites();
-    console.log('player death L BOZO');
-    gameState='death'
+    player.health--;
+    healthBar.w = (HealthBarLength(player.health, windowWidth-55));
+    console.log(player.health)
+    if (player.health <= 0) {
+        noTempSprites();
+        console.log('player death L BOZO');
+        camera.zoomTo(3, 0.0006);
+        gameState='death';
+    }
+}
+function HealthBarLength (_currentHealth, _maxBarLength) {
+    var barWidthMaybe = (_currentHealth / playerMaxHealth) * _maxBarLength;
+    console.log(barWidthMaybe);
+    return(barWidthMaybe);
+}
+/*******************************************************/
+//  End screen
+/*******************************************************/
+function deathScreen() {
+    background('#A10808FF');
+    textSize(30);
+    text(("you died your score was: " + score), 50, 50);
 }
 
-function deathScreen() {
-    background('Red');
-    camera.pos.y = 0;
-    camera.pos.x = 0;
-    textSize(30);
-    text(("you died your score was: " + score), 200, 200);
-}
 /*******************************************************/
 //  END OF GAME
 /*******************************************************/
