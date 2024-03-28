@@ -19,7 +19,7 @@ var gameDifficulty = 'Normal';
 var startButton;
 var difficultyButton;
 let gameState='startScreen';
-const VERSION_NUM = '0.3.1'
+const VERSION_NUM = '0.3.2'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
 const GAME_WIDTH = 3000;
@@ -46,6 +46,7 @@ function setup() {
     wallBot = new Sprite(GAME_WIDTH/2, GAME_HEIGHT, GAME_WIDTH, 0, 'k');
     wallBot.color = 'black';
     horedGroup = new Group();
+    bushesGroup = new Group();
     //reseting the game to start
     resetGame();
     startSetup();
@@ -186,6 +187,7 @@ function resetGame() {
     //healthbar setup but only if in the game
     if (gameState == 'game') {
         makeHeathBar();
+        spawnBushes(random(25,60));
     }
 }
 //center GUI function
@@ -330,7 +332,7 @@ function makeHeathBar(){
 //player being hit by zombie
 function zombieHitPlayer() {
     player.health--;
-    healthBar.w = (HealthBarLength(player.health, windowWidth-55));
+    healthBar.w = (healthBarLength(player.health, windowWidth-55));
     console.log(player.health)
     if (player.health <= 0) {
         noTempSprites();
@@ -339,10 +341,20 @@ function zombieHitPlayer() {
         gameState='death';
     }
 }
-function HealthBarLength (_currentHealth, _maxBarLength) {
+function healthBarLength (_currentHealth, _maxBarLength) {
     var barWidthMaybe = (_currentHealth / playerMaxHealth) * _maxBarLength;
     console.log(barWidthMaybe);
     return(barWidthMaybe);
+}
+function spawnBushes(_amount){
+    for (i = 0; i < _amount; i++) {
+        bushesGroup.add
+        var zSpawnY = random(0, GAME_HEIGHT);
+        var zSpawnX = random(0, GAME_WIDTH);
+        var zSpawnSize = random(64, 128);
+        bush = new Sprite(zSpawnX, zSpawnY, zSpawnSize, "k");
+        bushesGroup.add(bush);
+    }
 }
 /*******************************************************/
 //  End screen
