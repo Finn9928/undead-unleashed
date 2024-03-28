@@ -13,17 +13,20 @@ var swingSpeed = 6;
 var defaultZHealthMin = 1;
 var defaultZHealthMax = 6;
 var swordKnockBack = 3;
-var playerMaxHealth = 10; //temporary health value
+var playerMaxHealth = 80; //temporary health value
 var queueNum = 0;
 var gameDifficulty = 'Normal';
 var startButton;
 var difficultyButton;
+var zombieSpeed = 1;
+var zombieSpawnOffSet = 0;
+var zombieSpawnRate = 1;
 let gameState='startScreen';
-const VERSION_NUM = '0.3.2'
+const VERSION_NUM = '1.0.0'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
 const GAME_WIDTH = 3000;
-const GAME_HEIGHT = 2000;
+const GAME_HEIGHT = 3000;
 
 //funcpreload
 function preload() {
@@ -76,6 +79,8 @@ function draw() {
 //startscreenfunction
 function startScreen () {
     background('#674C85');
+    textSize(30);
+    text(("Use wasd to move \nUse the mouse to aim your sword"), 50, 50);
     controlsForPlayer ()
     player.rotateMinTo(mouse, 9, 90);//speed 9 found from testing and 90 is to point the sprite the correct ways
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
@@ -122,6 +127,7 @@ function swordHitPlayButton(_button, _player) {
     // play game if hit
     if (_button.health <= 0){
         noTempSprites();
+        spawnZombiesQueue(1);
         gameState='game';
         resetGame();
     }
@@ -150,7 +156,7 @@ function toggleDifficulty(_button, _player) {
 /*******************************************************/
 //game function
 function game() {
-    background('#3D8F69');
+    background('#36BF28FF');
     camera.pos = player.pos;
     textSize(30);
     text(("Score: " +score), 200, 200);
@@ -159,6 +165,9 @@ function game() {
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
     controlsForPlayer ();
     centerGUI();
+    moveZombiesTowardsPlayer();
+    zombieSpeed = zombieSpeed + 0.001
+    zombieSpawnTimer();
 }
 //this is the reset game function
 function resetGame() {
@@ -186,8 +195,8 @@ function resetGame() {
     player.collides(horedGroup, zombieHitPlayer);
     //healthbar setup but only if in the game
     if (gameState == 'game') {
-        makeHeathBar();
         spawnBushes(random(25,60));
+        makeHeathBar();
     }
 }
 //center GUI function
@@ -255,6 +264,9 @@ function controlsForPlayer () {
     if (kb.presses('2')) spawnZombiesQueue(5);
     if (kb.presses('3')) spawnZombiesQueue(20);
     if (kb.presses('4')) console.log(horedGroup.amount);
+    if (kb.presses('e')) allSprites.debug = true;
+    if (kb.released('e')) allSprites.debug = false;
+    
     //speed zoom
     function speedUp (){
         if (gameState == 'game') {
@@ -268,6 +280,13 @@ function controlsForPlayer () {
     }
 }
 //this spawns the zombies
+function zombieSpawnTimer () {
+    zombieSpawnOffSet++;
+    if (zombieSpawnOffSet == zombieSpawnRate*30) {
+        zombieSpawnOffSet = 0;
+        spawnZombiesQueue(1);
+    }
+}
 function spawnZombiesQueue (_amountToQueue){
     queueNum = queueNum + _amountToQueue;
     if (queueNum >= 1){
@@ -306,6 +325,24 @@ function swordHitZombie(_zombie, _player) {
         score++;
     }
 }
+// Function to handle zombie movement towards the player
+// With help from chat gpt
+function moveZombiesTowardsPlayer() {
+    horedGroup.forEach(zombie => {
+        // Calculate direction vector from zombie to player
+        const directionX = player.pos.x - zombie.pos.x;
+        const directionY = player.pos.y - zombie.pos.y;
+        // Normalize direction vector
+        const magnitude = Math.sqrt(directionX ** 2 + directionY ** 2);
+        const normalizedDirectionX = directionX / magnitude;
+        const normalizedDirectionY = directionY / magnitude;
+        // Apply velocity towards the player
+        const speed = zombieSpeed; // Adjust this value as needed
+        zombie.vel.x = normalizedDirectionX * speed;
+        zombie.vel.y = normalizedDirectionY * speed;
+    });
+}
+//chatgpt help ends
 //spawn outside of player veiw code
 function validateSpawnLocation(_xPos, _yPos){
     var valid
@@ -320,18 +357,22 @@ function validateSpawnLocation(_xPos, _yPos){
     }
 }
 //player healbar display
-function makeHeathBar(){
-    behindHealthBar = new Sprite(windowWidth/2, windowHeight-90, windowWidth-40, windowHeight/8, 'n');
+function makeHeathBar() {
+    var barWidth = windowWidth-55;
+    var barHeight = windowHeight/8-15;
+    var barX = windowWidth/2-barWidth/2;
+    var barY = windowHeight-90;
+    behindHealthBar = new Sprite(barX, barY, barWidth+20, barHeight+20, 'n');
     behindHealthBar.color = 'black';
     behindHealthBar.stroke = 'black';
-    healthBar = new Sprite(windowWidth/2, windowHeight-90, windowWidth-55, windowHeight/8-15, 'n');
-    healthBar.overlaps(behindHealthBar);
-    healthBar.stroke = 'black';
+    healthBar = new Sprite(barX, barY, barWidth, barHeight, 'n');
     healthBar.color = '#C22B19FF';
+    healthBar.stroke = 'black';
 }
 //player being hit by zombie
-function zombieHitPlayer() {
+function zombieHitPlayer(_zombie) {
     player.health--;
+    _zombie.health--;
     healthBar.w = (healthBarLength(player.health, windowWidth-55));
     console.log(player.health)
     if (player.health <= 0) {
@@ -353,6 +394,8 @@ function spawnBushes(_amount){
         var zSpawnX = random(0, GAME_WIDTH);
         var zSpawnSize = random(64, 128);
         bush = new Sprite(zSpawnX, zSpawnY, zSpawnSize, "k");
+        bush.color = ('#25960BFF');
+        bush.stroke = ('#186307FF');
         bushesGroup.add(bush);
     }
 }
