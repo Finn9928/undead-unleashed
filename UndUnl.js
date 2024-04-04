@@ -20,9 +20,14 @@ var startButton;
 var difficultyButton;
 var zombieSpeed = 1;
 var zombieSpawnOffSet = 0;
-var zombieSpawnRate = 1;
+var zombieSpawnRate = 5;
+var speedSlider;
+var healthSlider;
+var damageSlider;
+var continueButton;
+var behindHealthBar;
 let gameState='startScreen';
-const VERSION_NUM = '1.0.0'
+const VERSION_NUM = '1.0.1'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
 const GAME_WIDTH = 3000;
@@ -62,6 +67,9 @@ function draw() {
     if (gameState == 'startScreen') {
         startScreen ();
     }
+    if (gameState == 'preGame') {
+        preGameScreen();
+    }
     if (gameState == 'game') {
         game ();
     }
@@ -69,18 +77,17 @@ function draw() {
         deathScreen ();
     }
 }
-
-/*******************************************************/
+/*********************************************************/
 // functions
-/*******************************************************/
+/*********************************************************/
 /*******************************************************/
 // Start Screen and settings
 /*******************************************************/
 //startscreenfunction
 function startScreen () {
     background('#674C85');
-    textSize(30);
-    text(("Use wasd to move \nUse the mouse to aim your sword"), 50, 50);
+    textSize(60);
+    text(("Use wasd to move \nUse the mouse to aim your sword"), 50, 100);
     controlsForPlayer ()
     player.rotateMinTo(mouse, 9, 90);//speed 9 found from testing and 90 is to point the sprite the correct ways
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
@@ -128,8 +135,9 @@ function swordHitPlayButton(_button, _player) {
     if (_button.health <= 0){
         noTempSprites();
         spawnZombiesQueue(1);
-        gameState='game';
+        gameState='preGame';
         resetGame();
+        steupPreGame();
     }
 }
 //toggle the game difficulty
@@ -137,19 +145,51 @@ function toggleDifficulty(_button, _player) {
     _button.health--;
     if (difficultyButton.health <= 0){
         if (gameDifficulty == 'Normal') {
-        gameDifficulty = 'Hard/Fast';
-        difficultyButton.health = 20;
-        console.log(gameDifficulty);
-    } else if (gameDifficulty == 'Easy') {
-        gameDifficulty = 'Normal';
-        difficultyButton.health = 20;
-        console.log(gameDifficulty);
-    } else if (gameDifficulty == 'Hard/Fast') {
-        gameDifficulty = 'Easy';
-        difficultyButton.health = 20;
-        console.log(gameDifficulty);
+            gameDifficulty = 'Hard/Fast';
+            difficultyButton.health = 20;
+            console.log(gameDifficulty);
+        } else if (gameDifficulty == 'Easy') {
+            gameDifficulty = 'Normal';
+            difficultyButton.health = 20;
+            console.log(gameDifficulty);
+        } else if (gameDifficulty == 'Hard/Fast') {
+            gameDifficulty = 'Easy';
+            difficultyButton.health = 20;
+            console.log(gameDifficulty);
+        }
     }
-    }
+}
+/*******************************************************/
+// Stat selection Screen
+/*******************************************************/
+function preGameScreen(){
+    background('#674C85');
+    textSize(30);
+    text('Allocate your stats:', 50, 100);
+}
+function steupPreGame(){
+    speedSlider = createSlider(0, 100, 50);
+    speedSlider.position(windowWidth/4, 150);
+    speedSlider.size(windowWidth/2);
+    healthSlider = createSlider(0, 100, 50);
+    healthSlider.position(windowWidth/4, 200);
+    healthSlider.size(windowWidth/2);
+    damageSlider = createSlider(0, 100, 50);
+    damageSlider.position(windowWidth/4, 250);
+    damageSlider.size(windowWidth/2);
+    continueButton = createButton('Continue');
+    continueButton.position(windowWidth/2-continueButton.width/2, 300);
+    continueButton.mousePressed(startGame);
+}
+function startGame() {
+    speedSlider.remove();
+    healthSlider.remove();
+    damageSlider.remove();
+    continueButton.remove();
+    noTempSprites();
+    spawnZombiesQueue(1);
+    gameState='game';
+    resetGame();
 }
 /*******************************************************/
 // The game its self
@@ -201,10 +241,10 @@ function resetGame() {
 }
 //center GUI function
 function centerGUI() {
-    behindHealthBar.x = (player.pos.x);
-    behindHealthBar.y = (player.pos.y+windowHeight/2-90);
-    healthBar.x = (player.pos.x);
-    healthBar.y = (player.pos.y+windowHeight/2-90);
+    behindHealthBar.pos.x = (player.pos.x);
+    behindHealthBar.pos.y = (player.pos.y+windowHeight/2-90);
+    healthBar.pos.x = (player.pos.x);
+    healthBar.pos.y = (player.pos.y+windowHeight/2-90);
 }
 //movement code, called in game function and start screen function in the draw loop.
 function controlsForPlayer () {
@@ -407,7 +447,8 @@ function deathScreen() {
     textSize(30);
     text(("you died your score was: " + score), 50, 50);
 }
-
 /*******************************************************/
+//
 //  END OF GAME
+//
 /*******************************************************/
