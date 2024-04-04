@@ -1,6 +1,6 @@
 /*******************************************************/
 // Game Name: Undead Unleashed
-const VERSION_NUM = '1.0.2'
+const VERSION_NUM = '1.1.0'
 // Written by Cliff Harfield
 /*******************************************************/
 console.log('Boot UndUnl');
@@ -10,25 +10,30 @@ var player;
 var playerColour = '#7922E9';
 var playerWeapon;
 var swingSpeed = 6;
-var defaultZHealthMin = 1;
-var defaultZHealthMax = 6;
+var defaultZHealthMin = 20;
+var defaultZHealthMax = 100;
 var swordKnockBack = 3;
 var playerMaxHealth = 80; //temporary health value
+var playerDamage = 1; //temporary damage value
+var playerSpeed = 4;
 var queueNum = 0;
 var gameDifficulty = 'Normal';
 var startButton;
 var difficultyButton;
 var zombieSpeed = 1;
 var zombieSpawnOffSet = 0;
-var zombieSpawnRate = 5;
+var zombieSpawnRate = 4;
 var speedSlider;
+var speedIcon;
 var healthSlider;
+var healthIcon;
 var damageSlider;
+var damageIcon;
 var continueButton;
 var behindHealthBar;
+var totalSkill;
 let gameState='startScreen';
 const PLAYER_SCALE = 30;
-const PLAYER_SPEED = 4;
 const GAME_WIDTH = 3000;
 const GAME_HEIGHT = 3000;
 
@@ -165,25 +170,50 @@ function preGameScreen(){
     background('#674C85');
     textSize(30);
     text('Allocate your stats:', 50, 100);
+    text((speedSlider.value()+healthSlider.value()+damageSlider.value()),50, 125);
+    totalSkill = speedSlider.value()+healthSlider.value()+damageSlider.value();
+    speedIcon.text = floor(speedSlider.value()/totalSkill*100);
+    healthIcon.text = floor(healthSlider.value()/totalSkill*100);
+    damageIcon.text = floor(damageSlider.value()/totalSkill*100);
 }
 function steupPreGame(){
-    speedSlider = createSlider(0, 100, 50);
+    speedSlider = createSlider(0, 100, 1, 1);
     speedSlider.position(windowWidth/4, 150);
     speedSlider.size(windowWidth/2);
-    healthSlider = createSlider(0, 100, 50);
+    speedSlider.color = '#2E79FFFF';
+    speedIcon = new Sprite(windowWidth-windowWidth/4+26, 158, 40, 'k');
+    speedIcon.color = '#2E79FFFF';
+    speedIcon.textSize = 20;
+    healthSlider = createSlider(0, 100, 1, 1);
     healthSlider.position(windowWidth/4, 200);
     healthSlider.size(windowWidth/2);
-    damageSlider = createSlider(0, 100, 50);
+    healthIcon = new Sprite(windowWidth-windowWidth/4+26, 208, 40, 'k');
+    healthIcon.color = '#FF17BFFF';
+    healthIcon.textSize = 20;
+    damageSlider = createSlider(0, 100, 1, 1);
     damageSlider.position(windowWidth/4, 250);
     damageSlider.size(windowWidth/2);
+    damageIcon = new Sprite(windowWidth-windowWidth/4+26, 258, 40, 'k');
+    damageIcon.color = '#FF0101FF';
+    damageIcon.textSize = 20;
     continueButton = createButton('Continue');
     continueButton.position(windowWidth/2-continueButton.width/2, 300);
     continueButton.mousePressed(startGame);
 }
+//starts the game
 function startGame() {
+    playerMaxHealth = healthSlider.value()/totalSkill*120;
+    console.log(playerMaxHealth);
+    playerDamage = damageSlider.value()/totalSkill*100;
+    console.log(playerDamage);
+    playerSpeed = speedSlider.value()/totalSkill*12;
+    console.log(playerSpeed);
     speedSlider.remove();
+    speedIcon.remove();
     healthSlider.remove();
+    healthIcon.remove();
     damageSlider.remove();
+    damageIcon.remove();
     continueButton.remove();
     noTempSprites();
     spawnZombiesQueue(1);
@@ -249,7 +279,7 @@ function centerGUI() {
 function controlsForPlayer () {
     //movment controls (WASD)
     if (kb.pressing('a')){
-        player.vel.x=-PLAYER_SPEED;
+        player.vel.x=-playerSpeed;
         //speedUp();
     }
     if (kb.released('a')){
@@ -258,7 +288,7 @@ function controlsForPlayer () {
         //speedDown();
     }
     if (kb.pressing('d')){
-        player.vel.x=+PLAYER_SPEED;
+        player.vel.x=+playerSpeed;
         //speedUp();
     }
     if (kb.released('d')){
@@ -267,7 +297,7 @@ function controlsForPlayer () {
         //speedDown();
     }
     if (kb.pressing('w')){
-        player.vel.y=-PLAYER_SPEED;
+        player.vel.y=-playerSpeed;
         //speedUp();
     }
     if (kb.released('w')){
@@ -276,7 +306,7 @@ function controlsForPlayer () {
         //speedDown();
     }
     if (kb.pressing('s')){
-        player.vel.y=+PLAYER_SPEED; 
+        player.vel.y=+playerSpeed; 
         //speedUp();
     }
     if (kb.released('s')){
@@ -285,16 +315,16 @@ function controlsForPlayer () {
         //speedDown();
     }
     //this keeps the player from gliding
-    if (player.vel.y <= (PLAYER_SPEED - 1)) {
-        if (player.vel.y >= (-PLAYER_SPEED + 1)) player.vel.y = 0;
+    if (player.vel.y <= (playerSpeed - 1)) {
+        if (player.vel.y >= (-playerSpeed + 1)) player.vel.y = 0;
     }
-    if (player.vel.x <= (PLAYER_SPEED - 1)) {
-        if (player.vel.x >= (-PLAYER_SPEED + 1)) player.vel.x = 0;
+    if (player.vel.x <= (playerSpeed - 1)) {
+        if (player.vel.x >= (-playerSpeed + 1)) player.vel.x = 0;
     }
-    if (player.vel.y > PLAYER_SPEED) player.vel.y = 0;
-    if (player.vel.x > PLAYER_SPEED) player.vel.x = 0;
-    if (player.vel.y < -PLAYER_SPEED) player.vel.y = 0;
-    if (player.vel.x < -PLAYER_SPEED) player.vel.x = 0;
+    if (player.vel.y > playerSpeed) player.vel.y = 0;
+    if (player.vel.x > playerSpeed) player.vel.x = 0;
+    if (player.vel.y < -playerSpeed) player.vel.y = 0;
+    if (player.vel.x < -playerSpeed) player.vel.x = 0;
     //Weapon controls
     if (mouse.pressing()) swingSpeed = 20;
     if (mouse.released()) swingSpeed = 6;
@@ -302,7 +332,7 @@ function controlsForPlayer () {
     //if (kb.presses('1')) spawnZombiesQueue(1);
     //if (kb.presses('2')) spawnZombiesQueue(5);
     //if (kb.presses('3')) spawnZombiesQueue(20);
-    //if (kb.presses('4')) console.log(horedGroup.amount);
+    //if (kb.presses('4')) console.log(zombieSpawnRate);
     if (kb.presses('e')) allSprites.debug = true;
     if (kb.released('e')) allSprites.debug = false;
     //speed zoom broken
@@ -322,8 +352,12 @@ function controlsForPlayer () {
 //this spawns the zombies
 function zombieSpawnTimer () {
     zombieSpawnOffSet++;
-    if (zombieSpawnOffSet == zombieSpawnRate*30) {
+    if (zombieSpawnOffSet > zombieSpawnRate*60) {
         zombieSpawnOffSet = 0;
+        if (zombieSpawnRate >= 0.1){
+            zombieSpawnRate = zombieSpawnRate/1.06;
+            console.log('valid');
+        }
         spawnZombiesQueue(1);
     }
 }
@@ -338,13 +372,14 @@ function spawnZombies (_amount){
     for (i = 0; i < _amount; i++) {
         var zSpawnY = random(0, GAME_HEIGHT);
         var zSpawnX = random(0, GAME_WIDTH);
-        var zSpawnSize = random(14, 24);
+        var zSpawnSize = random(20, 34);
         var zSpawnHealth = floor(random(defaultZHealthMin, defaultZHealthMax));
         if (validateSpawnLocation(zSpawnX, zSpawnY)){
             zombie = new Sprite(zSpawnX, zSpawnY, zSpawnSize, "d");
             zombie.color= "darkGreen";
             zombie.health = zSpawnHealth;
             zombie.friction = 1.5;
+            zombie.textSize = 15;
             horedGroup.add(zombie);
             spawnZombiesQueue (0);
         }
@@ -355,8 +390,8 @@ function spawnZombies (_amount){
 }
 //this is the player attacking zombie code
 function swordHitZombie(_zombie, _player) {
-    _zombie.health--;
-    _zombie.text = (_zombie.health);
+    _zombie.health = _zombie.health - playerDamage;
+    _zombie.text = floor(_zombie.health);
     _zombie.applyForce(swordKnockBack);
     // Remove zombie if health
     if (_zombie.health <= 0){
@@ -409,7 +444,6 @@ function makeHeathBar() {
 function zombieHitPlayer(_zombie) {
     player.health--;
     healthBar.w = (healthBarLength(player.health, windowWidth-55));
-    console.log(player.health)
     if (player.health <= 0) {
         noTempSprites();
         console.log('player death');
