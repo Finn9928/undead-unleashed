@@ -1,6 +1,6 @@
 /*******************************************************/
 // Game Name: Undead Unleashed
-// 
+const VERSION_NUM = '1.0.2'
 // Written by Cliff Harfield
 /*******************************************************/
 console.log('Boot UndUnl');
@@ -27,7 +27,6 @@ var damageSlider;
 var continueButton;
 var behindHealthBar;
 let gameState='startScreen';
-const VERSION_NUM = '1.0.1'
 const PLAYER_SCALE = 30;
 const PLAYER_SPEED = 4;
 const GAME_WIDTH = 3000;
@@ -43,7 +42,7 @@ function preload() {
 /*******************************************************/
 function setup() {
     console.log(" setup: Undead Unleashed");
-    new Canvas(windowWidth, windowHeight);
+    cnv= new Canvas(windowWidth, windowHeight);
     //walls
     wallLH  = new Sprite(0, GAME_HEIGHT/2, 0, GAME_HEIGHT, 'k');
     wallLH.color = 'black';
@@ -251,39 +250,39 @@ function controlsForPlayer () {
     //movment controls (WASD)
     if (kb.pressing('a')){
         player.vel.x=-PLAYER_SPEED;
-        speedUp();
+        //speedUp();
     }
     if (kb.released('a')){
         player.vel.x=0;
         playerWeapon.vel.x=0;
-        speedDown();
+        //speedDown();
     }
     if (kb.pressing('d')){
         player.vel.x=+PLAYER_SPEED;
-        speedUp();
+        //speedUp();
     }
     if (kb.released('d')){
         player.vel.x=0;
         playerWeapon.vel.x=0;
-        speedDown();
+        //speedDown();
     }
     if (kb.pressing('w')){
         player.vel.y=-PLAYER_SPEED;
-        speedUp();
+        //speedUp();
     }
     if (kb.released('w')){
         player.vel.y=0;
         playerWeapon.vel.y=0;
-        speedDown();
+        //speedDown();
     }
     if (kb.pressing('s')){
         player.vel.y=+PLAYER_SPEED; 
-        speedUp();
+        //speedUp();
     }
     if (kb.released('s')){
         player.vel.y=0;
         playerWeapon.vel.y=0;
-        speedDown();
+        //speedDown();
     }
     //this keeps the player from gliding
     if (player.vel.y <= (PLAYER_SPEED - 1)) {
@@ -299,25 +298,26 @@ function controlsForPlayer () {
     //Weapon controls
     if (mouse.pressing()) swingSpeed = 20;
     if (mouse.released()) swingSpeed = 6;
-    //testing button
-    if (kb.presses('1')) spawnZombiesQueue(1);
-    if (kb.presses('2')) spawnZombiesQueue(5);
-    if (kb.presses('3')) spawnZombiesQueue(20);
-    if (kb.presses('4')) console.log(horedGroup.amount);
+    //testing buttons
+    //if (kb.presses('1')) spawnZombiesQueue(1);
+    //if (kb.presses('2')) spawnZombiesQueue(5);
+    //if (kb.presses('3')) spawnZombiesQueue(20);
+    //if (kb.presses('4')) console.log(horedGroup.amount);
     if (kb.presses('e')) allSprites.debug = true;
     if (kb.released('e')) allSprites.debug = false;
-    
-    //speed zoom
-    function speedUp (){
-        if (gameState == 'game') {
-            camera.zoomTo(0.95, 0.001);
-        }
-    }
-    function speedDown () {
-        if (gameState == 'game') {
-            camera.zoomTo(1, 0.01);
-        }
-    }
+    //speed zoom broken
+    //function speedUp (){
+    //    if (gameState == 'game') {
+    //        camera.zoomTo(0.95, 0.001,);
+    //        camera.pos = player.pos;
+    //    }
+    //}
+    //function speedDown () {
+    //    if (gameState == 'game') {
+    //        camera.zoomTo(1, 0.01);
+    //        camera.pos = player.pos;
+    //    }
+    //}
 }
 //this spawns the zombies
 function zombieSpawnTimer () {
@@ -331,7 +331,6 @@ function spawnZombiesQueue (_amountToQueue){
     queueNum = queueNum + _amountToQueue;
     if (queueNum >= 1){
         queueNum = queueNum - 1;
-        console.log(queueNum);
         spawnZombies(1);
     }
 }
@@ -386,13 +385,10 @@ function moveZombiesTowardsPlayer() {
 //spawn outside of player veiw code
 function validateSpawnLocation(_xPos, _yPos){
     var valid
-    console.log(_xPos, _yPos, player.pos.x, player.pos.y, dist(_xPos, _yPos, player.pos.x, player.pos.y));
     if (dist(_xPos, _yPos, player.pos.x, player.pos.y)> windowHeight){
-        console.log('true');
         return(true);
     }
     else {
-        console.log('false');
         return(false);
     }
 }
@@ -412,19 +408,17 @@ function makeHeathBar() {
 //player being hit by zombie
 function zombieHitPlayer(_zombie) {
     player.health--;
-    _zombie.health--;
     healthBar.w = (healthBarLength(player.health, windowWidth-55));
     console.log(player.health)
     if (player.health <= 0) {
         noTempSprites();
-        console.log('player death L BOZO');
-        camera.zoomTo(3, 0.0006);
+        console.log('player death');
+        //camera.zoomTo(3, 0.0006);
         gameState='death';
     }
 }
 function healthBarLength (_currentHealth, _maxBarLength) {
     var barWidthMaybe = (_currentHealth / playerMaxHealth) * _maxBarLength;
-    console.log(barWidthMaybe);
     return(barWidthMaybe);
 }
 function spawnBushes(_amount){
