@@ -1,28 +1,28 @@
 /*******************************************************/
 // Game Name: Undead Unleashed
-const VERSION_NUM = '1.1.0'
+const VERSION_NUM = '1.1.1'
 // Written by Cliff Harfield
 /*******************************************************/
 console.log('Boot UndUnl');
 // Seting up the variable and constants etc
 var score = 0;
 var player;
-var playerColour = '#7922E9';
+var playerColour = 'red';
 var playerWeapon;
 var swingSpeed = 6;
 var defaultZHealthMin = 20;
 var defaultZHealthMax = 100;
 var swordKnockBack = 3;
-var playerMaxHealth = 80; //temporary health value
-var playerDamage = 1; //temporary damage value
-var playerSpeed = 4;
+var playerMaxHealth = 80; // temporary health value
+var playerDamage = 10; // temporary damage value
+var playerSpeed = 4; // temporary speed for home screen
 var queueNum = 0;
 var gameDifficulty = 'Normal';
 var startButton;
 var difficultyButton;
 var zombieSpeed = 1;
-var zombieSpawnOffSet = 0;
-var zombieSpawnRate = 4;
+var zombieSpawnOffSet = 100;
+var zombieSpawnRate = 6;
 var speedSlider;
 var speedIcon;
 var healthSlider;
@@ -32,15 +32,15 @@ var damageIcon;
 var continueButton;
 var behindHealthBar;
 var totalSkill;
-let gameState='startScreen';
-const PLAYER_SCALE = 30;
+let gameState = 'startScreen';
+const PLAYER_SCALE = 36; // default 30
 const GAME_WIDTH = 3000;
 const GAME_HEIGHT = 3000;
 
-//funcpreload
+// the preload function
 function preload() {
-    playerTexure = loadImage('/texures/playertemp.png');
-    playerSwordTexure = loadImage('/texures/playerweapon1texure.png')
+    playerTexure = loadImage('/texures/purplePlayer.png');
+    playerSwordTexure = loadImage('/texures/swordtexuyres.png')
 }
 /*******************************************************/
 // setup()
@@ -48,18 +48,18 @@ function preload() {
 function setup() {
     console.log(" setup: Undead Unleashed");
     cnv= new Canvas(windowWidth, windowHeight);
-    //walls
-    wallLH  = new Sprite(0, GAME_HEIGHT/2, 0, GAME_HEIGHT, 'k');
+    // creating the walls
+    wallLH  = new Sprite(0, GAME_HEIGHT / 2, 0, GAME_HEIGHT, 'k');
     wallLH.color = 'black';
-    wallRH  = new Sprite(GAME_WIDTH, GAME_HEIGHT/2, 0, GAME_HEIGHT, 'k');
+    wallRH  = new Sprite(GAME_WIDTH, GAME_HEIGHT / 2, 0, GAME_HEIGHT, 'k');
     wallRH.color = "black";
-    wallTop = new Sprite(GAME_WIDTH/2, 0, GAME_WIDTH, 0, 'k');
+    wallTop = new Sprite(GAME_WIDTH / 2, 0, GAME_WIDTH, 0, 'k');
     wallTop.color = 'black';
-    wallBot = new Sprite(GAME_WIDTH/2, GAME_HEIGHT, GAME_WIDTH, 0, 'k');
+    wallBot = new Sprite(GAME_WIDTH / 2, GAME_HEIGHT, GAME_WIDTH, 0, 'k');
     wallBot.color = 'black';
     horedGroup = new Group();
     bushesGroup = new Group();
-    //reseting the game to start
+    // reseting the game to start
     resetGame();
     startSetup();
 }
@@ -68,6 +68,7 @@ function setup() {
 // draw()
 /*******************************************************/
 function draw() {
+    // this tells the game what state it is in
     if (gameState == 'startScreen') {
         startScreen ();
     }
@@ -87,7 +88,7 @@ function draw() {
 /*******************************************************/
 // Start Screen and settings
 /*******************************************************/
-//startscreenfunction
+// the start screen function
 function startScreen () {
     background('#674C85');
     textSize(60);
@@ -99,30 +100,30 @@ function startScreen () {
     difficultyButton.collides(playerWeapon, toggleDifficulty);
     difficultyButton.text = gameDifficulty;
 }
-//tempwalls for menus
+// creating temporary walls for menus along side setting up everything into veiw
 function startSetup() {
-    tempWallBot = new Sprite(windowWidth/2, windowHeight, windowWidth, 0, 'k');
+    tempWallBot = new Sprite(windowWidth / 2, windowHeight, windowWidth, 0, 'k');
     tempWallBot.color = 'black';
-    tempWallRH  = new Sprite(windowWidth, windowHeight/2, 0, windowHeight, 'k');
+    tempWallRH = new Sprite(windowWidth, windowHeight / 2, 0, windowHeight, 'k');
     tempWallRH.color = "black";
-    //start menu buttons
-    startButton = new Sprite(windowWidth/4, windowHeight/3, 80, 'k');
+    // start menu buttons
+    startButton = new Sprite(windowWidth / 4, windowHeight / 3, 80, 'k');
     startButton.textSize = 30;
     startButton.text = "Play";
     startButton.health = 25;
     startButton.color = '#C998D7';
-    //dificaulty button
-    difficultyButton = new Sprite(windowWidth/4*3, windowHeight/3, 80, 'k');
+    // dificaulty button
+    difficultyButton = new Sprite(windowWidth / 4 * 3, windowHeight / 3, 80, 'k');
     difficultyButton.textSize = 17;
     difficultyButton.health = 20;
     difficultyButton.color = '#C998D7';
-    //moving the player in veiw
-    player.pos.x = windowWidth/2;
-    player.pos.y = windowHeight/2;
-    playerWeapon.pos.x = windowWidth/2;
-    playerWeapon.pos.y = windowHeight/2;
+    // moving the player in veiw
+    player.pos.x = windowWidth / 2;
+    player.pos.y = windowHeight / 2;
+    playerWeapon.pos.x = windowWidth / 2;
+    playerWeapon.pos.y = windowHeight / 2;
 }
-//remove temp walls
+// removeing the temp walls
 function noTempSprites(){
     tempWallBot.remove();
     tempWallRH.remove();
@@ -131,7 +132,7 @@ function noTempSprites(){
     startButton.remove();
     difficultyButton.remove();
 }
-//this is the player attacking the play button
+// this is the player attacking the play button
 function swordHitPlayButton(_button, _player) {
     _button.health--;
     _button.text = (_button.health);
@@ -144,7 +145,7 @@ function swordHitPlayButton(_button, _player) {
         steupPreGame();
     }
 }
-//toggle the game difficulty
+// toggle the game difficulty dosent do anything right now
 function toggleDifficulty(_button, _player) {
     _button.health--;
     if (difficultyButton.health <= 0){
@@ -166,47 +167,50 @@ function toggleDifficulty(_button, _player) {
 /*******************************************************/
 // Stat selection Screen
 /*******************************************************/
+// the stat selection screen
 function preGameScreen(){
     background('#674C85');
     textSize(30);
     text('Allocate your stats:', 50, 100);
-    text((speedSlider.value()+healthSlider.value()+damageSlider.value()),50, 125);
-    totalSkill = speedSlider.value()+healthSlider.value()+damageSlider.value();
-    speedIcon.text = floor(speedSlider.value()/totalSkill*100);
-    healthIcon.text = floor(healthSlider.value()/totalSkill*100);
-    damageIcon.text = floor(damageSlider.value()/totalSkill*100);
+    totalSkill = speedSlider.value() + healthSlider.value() + damageSlider.value();
+    speedIcon.text = floor(speedSlider.value() / totalSkill * 100);
+    healthIcon.text = floor(healthSlider.value() / totalSkill * 100);
+    damageIcon.text = floor(damageSlider.value() / totalSkill * 100);
 }
+// setting up the stat selection screen
 function steupPreGame(){
+    // setting up the sliders and there displays
     speedSlider = createSlider(0, 100, 1, 1);
-    speedSlider.position(windowWidth/4, 150);
-    speedSlider.size(windowWidth/2);
+    speedSlider.position(windowWidth / 4, 150);
+    speedSlider.size(windowWidth / 2);
     speedSlider.color = '#2E79FFFF';
-    speedIcon = new Sprite(windowWidth-windowWidth/4+26, 158, 40, 'k');
+    speedIcon = new Sprite(windowWidth-windowWidth / 4 + 26, 158, 40, 'k');
     speedIcon.color = '#2E79FFFF';
     speedIcon.textSize = 20;
     healthSlider = createSlider(0, 100, 1, 1);
-    healthSlider.position(windowWidth/4, 200);
-    healthSlider.size(windowWidth/2);
-    healthIcon = new Sprite(windowWidth-windowWidth/4+26, 208, 40, 'k');
+    healthSlider.position(windowWidth / 4, 200);
+    healthSlider.size(windowWidth / 2);
+    healthIcon = new Sprite(windowWidth-windowWidth / 4 + 26, 208, 40, 'k');
     healthIcon.color = '#FF17BFFF';
     healthIcon.textSize = 20;
     damageSlider = createSlider(0, 100, 1, 1);
-    damageSlider.position(windowWidth/4, 250);
-    damageSlider.size(windowWidth/2);
-    damageIcon = new Sprite(windowWidth-windowWidth/4+26, 258, 40, 'k');
+    damageSlider.position(windowWidth / 4, 250);
+    damageSlider.size(windowWidth / 2);
+    damageIcon = new Sprite(windowWidth-windowWidth / 4 + 26, 258, 40, 'k');
     damageIcon.color = '#FF0101FF';
     damageIcon.textSize = 20;
+    // the button that take you to the game when pressed
     continueButton = createButton('Continue');
-    continueButton.position(windowWidth/2-continueButton.width/2, 300);
+    continueButton.position(windowWidth / 2 - continueButton.width / 2, 300);
     continueButton.mousePressed(startGame);
 }
-//starts the game
+// starts the game
 function startGame() {
-    playerMaxHealth = healthSlider.value()/totalSkill*120;
+    playerMaxHealth = healthSlider.value() / totalSkill * 120;
     console.log(playerMaxHealth);
-    playerDamage = damageSlider.value()/totalSkill*100;
+    playerDamage = damageSlider.value() / totalSkill * 100;
     console.log(playerDamage);
-    playerSpeed = speedSlider.value()/totalSkill*12;
+    playerSpeed = speedSlider.value() / totalSkill * 12 + 0.1;
     console.log(playerSpeed);
     speedSlider.remove();
     speedIcon.remove();
@@ -223,98 +227,98 @@ function startGame() {
 /*******************************************************/
 // The game its self
 /*******************************************************/
-//game function
+// game function
 function game() {
     background('#36BF28FF');
     camera.pos = player.pos;
     textSize(30);
-    text(("Score: " +score), 200, 200);
+    text(("Score: " + score), 200, 200);
     textSize(16);
     player.rotateMinTo(mouse, 9, 90);//speed 8 found from testing and 90 is to point the sprite the correct ways
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
     controlsForPlayer ();
     centerGUI();
     moveZombiesTowardsPlayer();
-    zombieSpeed = zombieSpeed + 0.001
+    zombieSpeed = zombieSpeed + 0.001;
     zombieSpawnTimer();
 }
-//this is the reset game function
+// this is the reset game function
 function resetGame() {
-    //getting the player ready
+    // getting the player ready
     player = new Sprite(GAME_WIDTH/2, GAME_HEIGHT/2, PLAYER_SCALE, 'd')
-    player.color = playerColour;
     player.stroke = 'white';
     player.addImage(playerTexure);
+    //tint(playerColour);
     player.health = playerMaxHealth;
     playerTexure.resize(PLAYER_SCALE, PLAYER_SCALE);
-    //getting the players wepon ready
-    playerWeapon = new Sprite(GAME_WIDTH/2, GAME_HEIGHT/2, PLAYER_SCALE, PLAYER_SCALE*2, 'd')
+    // getting the players wepon ready
+    playerWeapon = new Sprite(GAME_WIDTH / 2, GAME_HEIGHT / 2, PLAYER_SCALE / 2, PLAYER_SCALE * 2, 'd')
     playerWeapon.stroke = 'white';
     playerWeapon.drag = 1;
     playerWeapon.offset.y = -50;
     playerWeapon.addImage(playerSwordTexure);
-    playerSwordTexure.resize(PLAYER_SCALE, PLAYER_SCALE*2);
-    //the connection point between the player and its sword
+    playerSwordTexure.resize(PLAYER_SCALE, PLAYER_SCALE * 2);
+    // the connection point between the player and its sword
     playerHands = new WheelJoint(playerWeapon, player);
     playerHands.visible = 'false';
     playerHands.springiness = 0.01;
-    //kill zombie detection
+    // damage a zombie detection
     horedGroup.collides(playerWeapon, swordHitZombie);
-    //kill the player
+    // damage the player detecton
     player.collides(horedGroup, zombieHitPlayer);
-    //healthbar setup but only if in the game
+    // healthbar setup but only if in the game
     if (gameState == 'game') {
-        spawnBushes(random(25,60));
+        spawnBushes(random(25, 60));
         makeHeathBar();
     }
 }
-//center GUI function
+// center GUI function
 function centerGUI() {
     behindHealthBar.pos.x = (player.pos.x);
-    behindHealthBar.pos.y = (player.pos.y+windowHeight/2-90);
+    behindHealthBar.pos.y = (player.pos.y + windowHeight / 2 - 90);
     healthBar.pos.x = (player.pos.x);
-    healthBar.pos.y = (player.pos.y+windowHeight/2-90);
+    healthBar.pos.y = (player.pos.y+windowHeight / 2 - 90);
 }
-//movement code, called in game function and start screen function in the draw loop.
+// movement code, called in game function and start screen function in the draw loop.
 function controlsForPlayer () {
-    //movment controls (WASD)
+    // movment controls (WASD)
     if (kb.pressing('a')){
-        player.vel.x=-playerSpeed;
+        player.vel.x = -playerSpeed;
         //speedUp();
     }
     if (kb.released('a')){
-        player.vel.x=0;
-        playerWeapon.vel.x=0;
+        player.vel.x = 0;
+        playerWeapon.vel.x = 0;
         //speedDown();
     }
     if (kb.pressing('d')){
-        player.vel.x=+playerSpeed;
+        player.vel.x = +playerSpeed;
         //speedUp();
     }
     if (kb.released('d')){
-        player.vel.x=0;
-        playerWeapon.vel.x=0;
+        player.vel.x = 0;
+        playerWeapon.vel.x = 0;
         //speedDown();
     }
     if (kb.pressing('w')){
-        player.vel.y=-playerSpeed;
+        player.vel.y = -playerSpeed;
         //speedUp();
     }
     if (kb.released('w')){
-        player.vel.y=0;
-        playerWeapon.vel.y=0;
+        player.vel.y = 0;
+        playerWeapon.vel.y = 0;
         //speedDown();
     }
     if (kb.pressing('s')){
-        player.vel.y=+playerSpeed; 
+        player.vel.y = +playerSpeed; 
         //speedUp();
     }
     if (kb.released('s')){
-        player.vel.y=0;
-        playerWeapon.vel.y=0;
+        player.vel.y = 0;
+        playerWeapon.vel.y = 0;
         //speedDown();
     }
-    //this keeps the player from gliding
+    // this keeps the player from gliding
     if (player.vel.y <= (playerSpeed - 1)) {
         if (player.vel.y >= (-playerSpeed + 1)) player.vel.y = 0;
     }
@@ -325,7 +329,7 @@ function controlsForPlayer () {
     if (player.vel.x > playerSpeed) player.vel.x = 0;
     if (player.vel.y < -playerSpeed) player.vel.y = 0;
     if (player.vel.x < -playerSpeed) player.vel.x = 0;
-    //Weapon controls
+    // Weapon controls
     if (mouse.pressing()) swingSpeed = 20;
     if (mouse.released()) swingSpeed = 6;
     //testing buttons
@@ -335,7 +339,7 @@ function controlsForPlayer () {
     //if (kb.presses('4')) console.log(zombieSpawnRate);
     if (kb.presses('e')) allSprites.debug = true;
     if (kb.released('e')) allSprites.debug = false;
-    //speed zoom broken
+    // speed zoom broken
     //function speedUp (){
     //    if (gameState == 'game') {
     //        camera.zoomTo(0.95, 0.001,);
@@ -349,18 +353,22 @@ function controlsForPlayer () {
     //    }
     //}
 }
-//this spawns the zombies
+// this spawns the zombies
 function zombieSpawnTimer () {
     zombieSpawnOffSet++;
-    if (zombieSpawnOffSet > zombieSpawnRate*60) {
+    if (zombieSpawnOffSet > zombieSpawnRate * 80) {
         zombieSpawnOffSet = 0;
         if (zombieSpawnRate >= 0.1){
-            zombieSpawnRate = zombieSpawnRate/1.06;
+            zombieSpawnRate = zombieSpawnRate / 1.06;
             console.log('valid');
+            spawnZombiesQueue(random(1, 3));
         }
-        spawnZombiesQueue(1);
+        else {
+            spawnZombiesQueue(1);
+        }
     }
 }
+// this is the spawn queue
 function spawnZombiesQueue (_amountToQueue){
     queueNum = queueNum + _amountToQueue;
     if (queueNum >= 1){
@@ -368,6 +376,7 @@ function spawnZombiesQueue (_amountToQueue){
         spawnZombies(1);
     }
 }
+// this creates the zombies
 function spawnZombies (_amount){
     for (i = 0; i < _amount; i++) {
         var zSpawnY = random(0, GAME_HEIGHT);
@@ -388,12 +397,12 @@ function spawnZombies (_amount){
         }
     }
 }
-//this is the player attacking zombie code
+// this is the player attacking zombie code
 function swordHitZombie(_zombie, _player) {
     _zombie.health = _zombie.health - playerDamage;
     _zombie.text = floor(_zombie.health);
     _zombie.applyForce(swordKnockBack);
-    // Remove zombie if health
+    // Remove zombie if health is zero of below
     if (_zombie.health <= 0){
         _zombie.remove();
         score++;
@@ -416,34 +425,34 @@ function moveZombiesTowardsPlayer() {
         zombie.vel.y = normalizedDirectionY * speed;
     });
 }
-//chatgpt help ends
-//spawn outside of player veiw code
+// chatgpt help ends
+// spawn outside of player veiw code
 function validateSpawnLocation(_xPos, _yPos){
     var valid
-    if (dist(_xPos, _yPos, player.pos.x, player.pos.y)> windowHeight){
+    if (dist(_xPos, _yPos, player.pos.x, player.pos.y) > windowHeight){
         return(true);
     }
     else {
         return(false);
     }
 }
-//player healbar display
+// player healbar display
 function makeHeathBar() {
-    var barWidth = windowWidth-55;
-    var barHeight = windowHeight/8-15;
-    var barX = windowWidth/2-barWidth/2;
-    var barY = windowHeight-90;
-    behindHealthBar = new Sprite(barX, barY, barWidth+20, barHeight+20, 'n');
+    var barWidth = windowWidth - 55;
+    var barHeight = windowHeight / 8 - 15;
+    var barX = windowWidth / 2 - barWidth / 2;
+    var barY = windowHeight - 90;
+    behindHealthBar = new Sprite(barX, barY, barWidth + 20, barHeight + 20, 'n');
     behindHealthBar.color = 'black';
     behindHealthBar.stroke = 'black';
     healthBar = new Sprite(barX, barY, barWidth, barHeight, 'n');
     healthBar.color = '#C22B19FF';
     healthBar.stroke = 'black';
 }
-//player being hit by zombie
+// player being hit by zombie
 function zombieHitPlayer(_zombie) {
     player.health--;
-    healthBar.w = (healthBarLength(player.health, windowWidth-55));
+    healthBar.w = (healthBarLength(player.health, windowWidth - 55));
     if (player.health <= 0) {
         noTempSprites();
         console.log('player death');
@@ -451,10 +460,12 @@ function zombieHitPlayer(_zombie) {
         gameState='death';
     }
 }
+// this sets the lenght of the healthbar 
 function healthBarLength (_currentHealth, _maxBarLength) {
     var barWidthMaybe = (_currentHealth / playerMaxHealth) * _maxBarLength;
     return(barWidthMaybe);
 }
+// this make all the bushes and places them randomly
 function spawnBushes(_amount){
     for (i = 0; i < _amount; i++) {
         bushesGroup.add
