@@ -1,6 +1,6 @@
 /*******************************************************/
 // Game Name: Undead Unleashed
-const VERSION_NUM = '1.1.3'
+const VERSION_NUM = '1.1.4'
 // Written by Cliff Harfield
 /*******************************************************/
 console.log('Boot UndUnl');
@@ -32,7 +32,7 @@ var damageIcon;
 var continueButton;
 var behindHealthBar;
 var totalSkill;
-let gameState = 'startScreen';
+let gameState = 'startScreen'; // starts the game in the start menu state
 const PLAYER_SCALE = 36; // default 30
 const GAME_WIDTH = 3000;
 const GAME_HEIGHT = 3000;
@@ -180,20 +180,20 @@ function preGameScreen(){
 // setting up the stat selection screen
 function steupPreGame(){
     // setting up the sliders and there displays
-    speedSlider = createSlider(0, 100, 1, 1);
+    speedSlider = createSlider(1, 101, 1, 1);
     speedSlider.position(windowWidth / 4, 150);
     speedSlider.size(windowWidth / 2);
     speedSlider.color = '#2E79FFFF';
     speedIcon = new Sprite(windowWidth-windowWidth / 4 + 26, 158, 40, 'k');
     speedIcon.color = '#2E79FFFF';
     speedIcon.textSize = 20;
-    healthSlider = createSlider(0, 100, 1, 1);
+    healthSlider = createSlider(1, 101, 1, 1);
     healthSlider.position(windowWidth / 4, 200);
     healthSlider.size(windowWidth / 2);
     healthIcon = new Sprite(windowWidth-windowWidth / 4 + 26, 208, 40, 'k');
     healthIcon.color = '#FF17BFFF';
     healthIcon.textSize = 20;
-    damageSlider = createSlider(0, 100, 1, 1);
+    damageSlider = createSlider(1, 101, 1, 1);
     damageSlider.position(windowWidth / 4, 250);
     damageSlider.size(windowWidth / 2);
     damageIcon = new Sprite(windowWidth-windowWidth / 4 + 26, 258, 40, 'k');
@@ -362,8 +362,7 @@ function zombieSpawnTimer () {
             zombieSpawnRate = zombieSpawnRate / 1.06;
             console.log('valid');
             spawnZombiesQueue(random(1, 3));
-        }
-        else {
+        } else {
             spawnZombiesQueue(1);
         }
     }
@@ -391,8 +390,7 @@ function spawnZombies (_amount){
             zombie.textSize = 15;
             horedGroup.add(zombie);
             spawnZombiesQueue (0);
-        }
-        else {
+        } else {
             spawnZombiesQueue (1);
         }
     }
@@ -431,8 +429,7 @@ function validateSpawnLocation(_xPos, _yPos){
     var valid
     if (dist(_xPos, _yPos, player.pos.x, player.pos.y) > windowHeight){
         return(true);
-    }
-    else {
+    } else {
         return(false);
     }
 }
