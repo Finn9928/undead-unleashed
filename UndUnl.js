@@ -1,6 +1,6 @@
 /*******************************************************/
 // Game Name: Undead Unleashed
-const VERSION_NUM = '1.1.1'
+const VERSION_NUM = '1.1.2'
 // Written by Cliff Harfield
 /*******************************************************/
 console.log('Boot UndUnl');
@@ -40,7 +40,7 @@ const GAME_HEIGHT = 3000;
 // the preload function
 function preload() {
     playerTexure = loadImage('/texures/purplePlayer.png');
-    playerSwordTexure = loadImage('/texures/swordtexuyres.png')
+    playerSwordTexure = loadImage('/texures/swordTexure.png')
 }
 /*******************************************************/
 // setup()
