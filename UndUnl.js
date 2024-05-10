@@ -1,6 +1,6 @@
 /*******************************************************/
 // Game Name: Undead Unleashed
-const VERSION_NUM = '1.1.4'
+const VERSION_NUM = '2.0.0'
 // Written by Cliff Harfield
 /*******************************************************/
 console.log('Boot UndUnl');
@@ -31,7 +31,12 @@ var damageSlider;
 var damageIcon;
 var continueButton;
 var behindHealthBar;
+var behindStaminaBar;
 var totalSkill;
+var stamina;
+var speedBackup = 4;
+var maxStamina = 1000;
+var levelUpNum = 100;
 let gameState = 'startScreen'; // starts the game in the start menu state
 const PLAYER_SCALE = 36; // default 30
 const GAME_WIDTH = 3000;
@@ -91,7 +96,7 @@ function draw() {
 // the start screen function
 function startScreen () {
     background('#674C85');
-    textSize(60);
+    textSize(40);
     text(("Use wasd to move \nUse the mouse to aim your sword"), 50, 100);
     controlsForPlayer ()
     player.rotateMinTo(mouse, 9, 90);//speed 9 found from testing and 90 is to point the sprite the correct ways
@@ -172,6 +177,9 @@ function preGameScreen(){
     background('#674C85');
     textSize(30);
     text('Allocate your stats:', 50, 100);
+    text('Speed', windowWidth / 4, 150);
+    text('Heath', windowWidth / 4, 200);
+    text('Damage', windowWidth / 4, 250);
     totalSkill = speedSlider.value() + healthSlider.value() + damageSlider.value();
     speedIcon.text = floor(speedSlider.value() / totalSkill * 100);
     healthIcon.text = floor(healthSlider.value() / totalSkill * 100);
@@ -211,6 +219,7 @@ function startGame() {
     playerDamage = damageSlider.value() / totalSkill * 100;
     console.log(playerDamage);
     playerSpeed = speedSlider.value() / totalSkill * 12 + 0.1;
+    speedBackup = speedSlider.value() / totalSkill * 12 + 0.1;
     console.log(playerSpeed);
     speedSlider.remove();
     speedIcon.remove();
@@ -270,14 +279,30 @@ function resetGame() {
     if (gameState == 'game') {
         spawnBushes(random(25, 60));
         makeHeathBar();
+        makeStaminaAndEpBars();
     }
 }
 // center GUI function
 function centerGUI() {
-    behindHealthBar.pos.x = (player.pos.x);
-    behindHealthBar.pos.y = (player.pos.y + windowHeight / 2 - 90);
-    healthBar.pos.x = (player.pos.x);
-    healthBar.pos.y = (player.pos.y+windowHeight / 2 - 90);
+    // Centering health bar
+    behindHealthBar.pos.x = player.pos.x;
+    behindHealthBar.pos.y = player.pos.y + (windowHeight / 2) - 140;
+    healthBar.pos.x = behindHealthBar.pos.x;
+    healthBar.pos.y = behindHealthBar.pos.y;
+
+    // Centering stamina bar
+    behindStaminaBar.pos.x = player.pos.x - windowWidth / 12 - 5;
+    behindStaminaBar.pos.y = player.pos.y + (windowHeight / 2) - 50;
+    staminaBar.pos.x = behindStaminaBar.pos.x;
+    staminaBar.pos.y = behindStaminaBar.pos.y;
+    
+    // Centering xp bar
+    behindXpBar.pos.x = player.pos.x + windowWidth / 12 + 5;
+    behindXpBar.pos.y = player.pos.y + (windowHeight / 2) - 50;
+    XpBarGoal.pos.x = behindXpBar.pos.x;
+    XpBarGoal.pos.y = behindXpBar.pos.y;
+    XpBar.pos.x = behindXpBar.pos.x;
+    XpBar.pos.y = behindXpBar.pos.y;
 }
 // movement code, called in game function and start screen function in the draw loop.
 function controlsForPlayer () {
@@ -330,12 +355,37 @@ function controlsForPlayer () {
     if (player.vel.y < -playerSpeed) player.vel.y = 0;
     if (player.vel.x < -playerSpeed) player.vel.x = 0;
     // Weapon controls
-    if (mouse.pressing()) swingSpeed = 20;
+    if (mouse.pressing()){
+        if (gameState == "game") {
+            if (staminaBar.health <= 1){
+                //tooLittleStamina();
+            } else{
+                StaminaUsed(0.5);
+                swingSpeed = 20;
+            }
+        } else {
+            swingSpeed = 20;
+        }
+    }
     if (mouse.released()) swingSpeed = 6;
+    //sprint key
+    if (kb.pressing('shift')){
+        if (gameState == "game") {
+            if (staminaBar.health <= 1){
+                //tooLittleStamina();
+            } else{
+                StaminaUsed(1);
+                playerSpeed = (speedBackup * 1.5);
+            }
+        } else {
+            playerSpeed = (speedBackup * 1.5);
+        }
+    }
+    if (kb.released('shift')) playerSpeed = (playerSpeed / 1.5);
     //testing buttons
-    //if (kb.presses('1')) spawnZombiesQueue(1);
-    //if (kb.presses('2')) spawnZombiesQueue(5);
-    //if (kb.presses('3')) spawnZombiesQueue(20);
+    if (kb.presses('1')) player.health = 100000;
+    if (kb.presses('2')) console.log(playerSpeed);
+    //if (kb.presses('3')) XpBarGain(20);
     //if (kb.presses('4')) console.log(zombieSpawnRate);
     if (kb.presses('e')) allSprites.debug = true;
     if (kb.released('e')) allSprites.debug = false;
@@ -360,7 +410,6 @@ function zombieSpawnTimer () {
         zombieSpawnOffSet = 0;
         if (zombieSpawnRate >= 0.1){
             zombieSpawnRate = zombieSpawnRate / 1.06;
-            console.log('valid');
             spawnZombiesQueue(random(1, 3));
         } else {
             spawnZombiesQueue(1);
@@ -404,6 +453,7 @@ function swordHitZombie(_zombie, _player) {
     if (_zombie.health <= 0){
         _zombie.remove();
         score++;
+        XpBarGain(random(2,5));
     }
 }
 // Function to handle zombie movement towards the player
@@ -446,6 +496,32 @@ function makeHeathBar() {
     healthBar.color = '#C22B19FF';
     healthBar.stroke = 'black';
 }
+function makeStaminaAndEpBars() {
+    var barsWidth = windowWidth / 6;
+    var barsHeight = windowHeight / 12 - 15;
+    var StaminaBarX = windowWidth / 2 - barsWidth / 2;
+    var StaminaBarY = windowHeight - healthBar.y - 40;
+    behindStaminaBar = new Sprite(StaminaBarX, StaminaBarY, barsWidth + 20, barsHeight + 20, 'n');
+    behindStaminaBar.color = 'black';
+    behindStaminaBar.stroke = 'black';
+    staminaBar = new Sprite(StaminaBarX, StaminaBarY, barsWidth, barsHeight, 'n');
+    staminaBar.color = '#13AEFF';
+    staminaBar.stroke = '#13AEFF';
+    staminaBar.health = maxStamina;
+    // Xp bar
+    var XpBarX = windowWidth / 2 - barsWidth / 2;
+    var XpBarY = windowHeight - healthBar.y - 40;
+    behindXpBar = new Sprite(XpBarX, XpBarY, barsWidth + 20, barsHeight + 20, 'n');
+    behindXpBar.color = 'black';
+    behindXpBar.stroke = 'black';
+    XpBarGoal = new Sprite(XpBarX, XpBarY, barsWidth, barsHeight, 'n');
+    XpBarGoal.color = '#7C8F06FF';
+    XpBarGoal.stroke = '#7C8F06FF';
+    XpBar = new Sprite(XpBarX, XpBarY, 0, barsHeight, 'n');
+    XpBar.color = '#DDFF0AFF';
+    XpBar.stroke = '#7C8F06FF';
+    XpBar.health = 1;
+}
 // player being hit by zombie
 function zombieHitPlayer(_zombie) {
     player.health--;
@@ -474,6 +550,35 @@ function spawnBushes(_amount){
         bush.stroke = ('#186307FF');
         bushesGroup.add(bush);
     }
+}
+//use staminca code
+function StaminaUsed(_amount){
+    if(staminaBar.health - _amount <= 0){
+        console.error("low stamina");
+    } else {
+        staminaBar.health = (staminaBar.health - _amount);
+        staminaBar.w = (staminaBarLength(staminaBar.health, windowWidth / 6));
+    }
+}
+function staminaBarLength(_currentAmount, _maxBarLength) {
+    var barWidthMaybe = (_currentAmount / maxStamina) * _maxBarLength;
+    return(barWidthMaybe);
+}
+// xp bar gain code
+function XpBarGain(_amount) {
+    XpBar.health = XpBar.health + _amount;
+    if(XpBar.health > levelUpNum){
+        console.log("Level Up");
+        XpBar.health = 1;
+        XpBar.w = (XpBarLength(XpBar.health, windowWidth / 6));
+        //level up code gose here
+    } else {
+        XpBar.w = (XpBarLength(XpBar.health, windowWidth / 6));
+    }
+}
+function XpBarLength(_currentAmount, _maxBarLength) {
+    var barWidthMaybe = (_currentAmount / levelUpNum) * _maxBarLength;
+    return(barWidthMaybe);
 }
 /*******************************************************/
 //  End screen
