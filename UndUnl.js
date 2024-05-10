@@ -1,6 +1,6 @@
 /*******************************************************/
 // Game Name: Undead Unleashed
-const VERSION_NUM = '2.0.0'
+const VERSION_NUM = '2.0.1'
 // Written by Cliff Harfield
 /*******************************************************/
 console.log('Boot UndUnl');
@@ -383,8 +383,8 @@ function controlsForPlayer () {
     }
     if (kb.released('shift')) playerSpeed = (playerSpeed / 1.5);
     //testing buttons
-    if (kb.presses('1')) player.health = 100000;
-    if (kb.presses('2')) console.log(playerSpeed);
+    //if (kb.presses('1')) player.health = 100000;
+    //if (kb.presses('2')) console.log(playerSpeed);
     //if (kb.presses('3')) XpBarGain(20);
     //if (kb.presses('4')) console.log(zombieSpawnRate);
     if (kb.presses('e')) allSprites.debug = true;
