@@ -1,6 +1,6 @@
 /*******************************************************/
 // Game Name: Undead Unleashed
-const VERSION_NUM = '2.0.1'
+const VERSION_NUM = '2.1.0'
 // Written by Cliff Harfield
 /*******************************************************/
 console.log('Boot UndUnl');
@@ -33,12 +33,11 @@ var continueButton;
 var behindHealthBar;
 var behindStaminaBar;
 var totalSkill;
-var stamina;
 var speedBackup = 4;
 var maxStamina = 1000;
 var levelUpNum = 100;
 let gameState = 'startScreen'; // starts the game in the start menu state
-const PLAYER_SCALE = 36; // default 30
+const PLAYER_SCALE = 36;
 const GAME_WIDTH = 3000;
 const GAME_HEIGHT = 3000;
 
@@ -178,7 +177,7 @@ function preGameScreen(){
     textSize(30);
     text('Allocate your stats:', 50, 100);
     text('Speed', windowWidth / 4, 150);
-    text('Heath', windowWidth / 4, 200);
+    text('Health', windowWidth / 4, 200);
     text('Damage', windowWidth / 4, 250);
     totalSkill = speedSlider.value() + healthSlider.value() + damageSlider.value();
     speedIcon.text = floor(speedSlider.value() / totalSkill * 100);
@@ -211,16 +210,20 @@ function steupPreGame(){
     continueButton = createButton('Continue');
     continueButton.position(windowWidth / 2 - continueButton.width / 2, 300);
     continueButton.mousePressed(startGame);
+    continueButton.style('background-color', "#553E6DFF");
+    continueButton.style('color', '#E8E8E8FF');
+    continueButton.style("font-family", 'Verdana');
+    continueButton.style("font-size", '30px');
+    continueButton.style("border-style", "outset");
+    continueButton.style("border-radius", "20px");
+    continueButton.style("border-width", "thick");
 }
 // starts the game
 function startGame() {
     playerMaxHealth = healthSlider.value() / totalSkill * 120;
-    console.log(playerMaxHealth);
     playerDamage = damageSlider.value() / totalSkill * 100;
-    console.log(playerDamage);
     playerSpeed = speedSlider.value() / totalSkill * 12 + 0.1;
     speedBackup = speedSlider.value() / totalSkill * 12 + 0.1;
-    console.log(playerSpeed);
     speedSlider.remove();
     speedIcon.remove();
     healthSlider.remove();
@@ -359,6 +362,7 @@ function controlsForPlayer () {
         if (gameState == "game") {
             if (staminaBar.health <= 1){
                 //tooLittleStamina();
+                swingSpeed = 6;
             } else{
                 StaminaUsed(0.5);
                 swingSpeed = 20;
@@ -373,6 +377,7 @@ function controlsForPlayer () {
         if (gameState == "game") {
             if (staminaBar.health <= 1){
                 //tooLittleStamina();
+                playerSpeed = (speedBackup / 1.5);
             } else{
                 StaminaUsed(1);
                 playerSpeed = (speedBackup * 1.5);
@@ -381,7 +386,7 @@ function controlsForPlayer () {
             playerSpeed = (speedBackup * 1.5);
         }
     }
-    if (kb.released('shift')) playerSpeed = (playerSpeed / 1.5);
+    if (kb.released('shift')) playerSpeed = (speedBackup / 1.5);
     //testing buttons
     //if (kb.presses('1')) player.health = 100000;
     //if (kb.presses('2')) console.log(playerSpeed);
@@ -483,6 +488,18 @@ function validateSpawnLocation(_xPos, _yPos){
         return(false);
     }
 }
+// player being hit by zombie
+function zombieHitPlayer(_zombie) {
+    player.health--;
+    healthBar.w = (healthBarLength(player.health, windowWidth - 55));
+    if (player.health <= 0) {
+        noTempSprites();
+        console.log('player death');
+        //camera.zoomTo(3, 0.0006);
+        deathSetup();
+        gameState='death';
+    }
+}
 // player healbar display
 function makeHeathBar() {
     var barWidth = windowWidth - 55;
@@ -496,6 +513,12 @@ function makeHeathBar() {
     healthBar.color = '#C22B19FF';
     healthBar.stroke = 'black';
 }
+// this sets the lenght of the healthbar 
+function healthBarLength (_currentHealth, _maxBarLength) {
+    var barWidthMaybe = (_currentHealth / playerMaxHealth) * _maxBarLength;
+    return(barWidthMaybe);
+}
+//this makes the stamina bars etc
 function makeStaminaAndEpBars() {
     var barsWidth = windowWidth / 6;
     var barsHeight = windowHeight / 12 - 15;
@@ -521,22 +544,6 @@ function makeStaminaAndEpBars() {
     XpBar.color = '#DDFF0AFF';
     XpBar.stroke = '#7C8F06FF';
     XpBar.health = 1;
-}
-// player being hit by zombie
-function zombieHitPlayer(_zombie) {
-    player.health--;
-    healthBar.w = (healthBarLength(player.health, windowWidth - 55));
-    if (player.health <= 0) {
-        noTempSprites();
-        console.log('player death');
-        //camera.zoomTo(3, 0.0006);
-        gameState='death';
-    }
-}
-// this sets the lenght of the healthbar 
-function healthBarLength (_currentHealth, _maxBarLength) {
-    var barWidthMaybe = (_currentHealth / playerMaxHealth) * _maxBarLength;
-    return(barWidthMaybe);
 }
 // this make all the bushes and places them randomly
 function spawnBushes(_amount){
@@ -569,6 +576,7 @@ function XpBarGain(_amount) {
     XpBar.health = XpBar.health + _amount;
     if(XpBar.health > levelUpNum){
         console.log("Level Up");
+        staminaBar.health = maxStamina;
         XpBar.health = 1;
         XpBar.w = (XpBarLength(XpBar.health, windowWidth / 6));
         //level up code gose here
@@ -587,6 +595,49 @@ function deathScreen() {
     background('#A10808FF');
     textSize(30);
     text(("you died your score was: " + score), 50, 50);
+}
+//sets up the death screen
+function deathSetup() {
+    restartButton = createButton('Play Again?');
+    restartButton.position(windowWidth / 2 - restartButton.width / 2, windowHeight/5);
+    restartButton.mousePressed(restartGame);
+    restartButton.style('background-color', "#720606FF");
+    restartButton.style('color', '#E8E8E8FF');
+    restartButton.style("font-family", 'Verdana');
+    restartButton.style("font-size", '30px');
+    restartButton.style("border-style", "outset");
+    restartButton.style("border-radius", "20px");
+    restartButton.style("border-width", "thick");
+    //restartButton.style
+}
+//restets that game
+function restartGame() {
+    console.log("resetting")
+    restartButton.remove();
+    allSprites.removeAll();
+    setup();
+    resetVarables();
+    gameState = 'startScreen';
+}
+// reset varables to there defaults
+function resetVarables() {
+    score = 0;
+    player;
+    swingSpeed = 6;
+    defaultZHealthMin = 20;
+    defaultZHealthMax = 100;
+    swordKnockBack = 3;
+    playerMaxHealth = 80; // temporary health value
+    playerDamage = 10; // temporary damage value
+    playerSpeed = 4; // temporary speed for home screen
+    queueNum = 0;
+    gameDifficulty = 'Normal';
+    zombieSpeed = 1;
+    zombieSpawnOffSet = 100;
+    zombieSpawnRate = 6;
+    speedBackup = 4;
+    maxStamina = 1000;
+    levelUpNum = 100;
 }
 /*******************************************************/
 //
