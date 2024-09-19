@@ -1,6 +1,6 @@
 /*******************************************************/
 // Game Name: Undead Unleashed
-const VERSION_NUM = '2.1.0'
+const VERSION_NUM = '2.1.2'
 // Written by Cliff Harfield
 /*******************************************************/
 console.log('Boot UndUnl');
@@ -12,7 +12,7 @@ var playerWeapon;
 var swingSpeed = 6;
 var defaultZHealthMin = 20;
 var defaultZHealthMax = 100;
-var swordKnockBack = 3;
+var swordKnockBack = 15;
 var playerMaxHealth = 80; // temporary health value
 var playerDamage = 10; // temporary damage value
 var playerSpeed = 4; // temporary speed for home screen
@@ -23,6 +23,7 @@ var difficultyButton;
 var zombieSpeed = 1;
 var zombieSpawnOffSet = 100;
 var zombieSpawnRate = 6;
+var moveZombiesNow = 0;
 var speedSlider;
 var speedIcon;
 var healthSlider;
@@ -38,8 +39,8 @@ var maxStamina = 1000;
 var levelUpNum = 100;
 let gameState = 'startScreen'; // starts the game in the start menu state
 const PLAYER_SCALE = 36;
-const GAME_WIDTH = 3000;
-const GAME_HEIGHT = 3000;
+const GAME_WIDTH = 3500;
+const GAME_HEIGHT = 3500;
 
 // the preload function
 function preload() {
@@ -175,7 +176,7 @@ function toggleDifficulty(_button, _player) {
 function preGameScreen(){
     background('#674C85');
     textSize(30);
-    text('Allocate your stats:', 50, 100);
+    text('Allocate your stats: for testing please use the defaults for your first test run', 50, 100);
     text('Speed', windowWidth / 4, 150);
     text('Health', windowWidth / 4, 200);
     text('Damage', windowWidth / 4, 250);
@@ -250,6 +251,11 @@ function game() {
     playerWeapon.rotateMinTo(mouse, swingSpeed, 90);
     controlsForPlayer ();
     centerGUI();
+    moveZombiesNow++;
+    if (moveZombiesNow == 60){
+        moveZombiesNow = 0;
+        moveZombiesTowardsPlayer();
+    }
     moveZombiesTowardsPlayer();
     zombieSpeed = zombieSpeed + 0.001;
     zombieSpawnTimer();
@@ -450,20 +456,68 @@ function spawnZombies (_amount){
     }
 }
 // this is the player attacking zombie code
+//function swordHitZombie(_zombie, _player) {
+//    _zombie.health = _zombie.health - playerDamage;
+//    _zombie.text = floor(_zombie.health);
+//    _zombie.applyForce(swordKnockBack);
+//    _zombie.
+//    // Remove zombie if health is zero of below
+//    if (_zombie.health <= 0){
+//        _zombie.remove();
+//        score++;
+//        XpBarGain(random(2,5));
+//    }
+//}
 function swordHitZombie(_zombie, _player) {
     _zombie.health = _zombie.health - playerDamage;
     _zombie.text = floor(_zombie.health);
-    _zombie.applyForce(swordKnockBack);
-    // Remove zombie if health is zero of below
-    if (_zombie.health <= 0){
+
+    // Calculate direction vector from sword to zombie
+    const directionX = _zombie.pos.x - playerWeapon.pos.x;
+    const directionY = _zombie.pos.y - playerWeapon.pos.y;
+    // Normalize direction vector
+    const magnitude = Math.sqrt(directionX ** 2 + directionY ** 2);
+    const normalizedDirectionX = directionX / magnitude;
+    const normalizedDirectionY = directionY / magnitude;
+    // Apply knockback force
+    const knockBackForce = swordKnockBack; // Adjust this value as needed
+    _zombie.vel.x += normalizedDirectionX * knockBackForce;
+    _zombie.vel.y += normalizedDirectionY * knockBackForce;
+
+    // Set knockback timer
+    _zombie.knockBackTimer = 30; // Adjust this value for knockback duration
+    
+    // Remove zombie if health is zero or below
+    if (_zombie.health <= 0) {
         _zombie.remove();
         score++;
-        XpBarGain(random(2,5));
+        XpBarGain(random(2, 5));
     }
 }
 // Function to handle zombie movement towards the player
 // With help from chat gpt
 function moveZombiesTowardsPlayer() {
+    horedGroup.forEach(zombie => {
+        // Decrease knockback timer if active
+        if (zombie.knockBackTimer > 0) {
+            zombie.knockBackTimer--;
+            return; // Skip movement if knockback is active
+        }
+
+        // Calculate direction vector from zombie to player
+        const directionX = player.pos.x - zombie.pos.x;
+        const directionY = player.pos.y - zombie.pos.y;
+        // Normalize direction vector
+        const magnitude = Math.sqrt(directionX ** 2 + directionY ** 2);
+        const normalizedDirectionX = directionX / magnitude;
+        const normalizedDirectionY = directionY / magnitude;
+        // Apply velocity towards the player
+        const speed = zombieSpeed; // Adjust this value as needed
+        zombie.vel.x = normalizedDirectionX * speed;
+        zombie.vel.y = normalizedDirectionY * speed;
+    });
+}
+function moveZombiesTowardsPlayer1() {//1 is temp delete to reactivate code
     horedGroup.forEach(zombie => {
         // Calculate direction vector from zombie to player
         const directionX = player.pos.x - zombie.pos.x;
@@ -577,6 +631,7 @@ function XpBarGain(_amount) {
     if(XpBar.health > levelUpNum){
         console.log("Level Up");
         staminaBar.health = maxStamina;
+        staminaBar.w = (staminaBarLength(staminaBar.health, windowWidth / 6));
         XpBar.health = 1;
         XpBar.w = (XpBarLength(XpBar.health, windowWidth / 6));
         //level up code gose here
@@ -588,6 +643,16 @@ function XpBarLength(_currentAmount, _maxBarLength) {
     var barWidthMaybe = (_currentAmount / levelUpNum) * _maxBarLength;
     return(barWidthMaybe);
 }
+//paritcal sytem
+
+/*******************************************************/
+//  dynamic screen size
+/*******************************************************/
+/*
+function checkScreenSize() {
+    let 
+}
+*/
 /*******************************************************/
 //  End screen
 /*******************************************************/
